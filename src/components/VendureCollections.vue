@@ -37,7 +37,7 @@
           </p>
           <div class="flex items-center justify-between mt-4">
             <span class="text-sm text-base-content/60">
-              {{ collection.productVariants.totalItems }} {{ collection.productVariants.totalItems === 1 ? 'item' : 'items' }}
+              {{ collection.productVariants?.totalItems || 0 }} {{ (collection.productVariants?.totalItems || 0) === 1 ? 'item' : 'items' }}
             </span>
             <a 
               :href="`/collections/${collection.slug}`" 
@@ -63,10 +63,25 @@
 import { ref, onMounted } from 'vue'
 import { graphqlClient } from '../lib/graphql-client'
 import { GET_COLLECTIONS } from '../queries/products'
-import type { GetCollectionsQuery } from '../gql/graphql'
+
+// Define types locally to avoid build issues
+interface Collection {
+  id: string
+  name: string
+  slug: string
+  description?: string
+  featuredAsset?: {
+    id: string
+    preview: string
+    source: string
+  }
+  productVariants?: {
+    totalItems: number
+  }
+}
 
 // Reactive state
-const collections = ref<GetCollectionsQuery['collections']['items']>([])
+const collections = ref<Collection[]>([])
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 

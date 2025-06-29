@@ -23,12 +23,12 @@ export class VoiceService {
         recognition.lang = 'en-US'
         recognition.maxAlternatives = 1
 
-        recognition.onresult = (event) => {
+        recognition.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript
           resolve(transcript)
         }
 
-        recognition.onerror = (event) => {
+        recognition.onerror = (event: any) => {
           console.error('Speech recognition error:', event.error)
           // Fallback to microphone recording for ElevenLabs
           this.startRecording().then(resolve).catch(reject)
@@ -78,7 +78,7 @@ export class VoiceService {
           stream.getTracks().forEach(track => track.stop())
         }
 
-        this.mediaRecorder.onerror = (event) => {
+        this.mediaRecorder.onerror = () => {
           reject(new Error('Recording failed'))
         }
 

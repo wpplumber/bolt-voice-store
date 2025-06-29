@@ -1,7 +1,5 @@
-import { graphql } from '../gql'
-
-// Add item to cart
-export const ADD_ITEM_TO_ORDER = graphql(`
+// Cart queries - temporarily simplified for build
+export const ADD_ITEM_TO_ORDER = `
   mutation AddItemToOrder($productVariantId: ID!, $quantity: Int!) {
     addItemToOrder(productVariantId: $productVariantId, quantity: $quantity) {
       ... on Order {
@@ -34,10 +32,9 @@ export const ADD_ITEM_TO_ORDER = graphql(`
       }
     }
   }
-`)
+`
 
-// Get active order (cart)
-export const GET_ACTIVE_ORDER = graphql(`
+export const GET_ACTIVE_ORDER = `
   query GetActiveOrder {
     activeOrder {
       id
@@ -64,10 +61,9 @@ export const GET_ACTIVE_ORDER = graphql(`
       }
     }
   }
-`)
+`
 
-// Remove item from cart
-export const REMOVE_ORDER_LINE = graphql(`
+export const REMOVE_ORDER_LINE = `
   mutation RemoveOrderLine($orderLineId: ID!) {
     removeOrderLine(orderLineId: $orderLineId) {
       ... on Order {
@@ -100,10 +96,9 @@ export const REMOVE_ORDER_LINE = graphql(`
       }
     }
   }
-`)
+`
 
-// Adjust order line quantity
-export const ADJUST_ORDER_LINE = graphql(`
+export const ADJUST_ORDER_LINE = `
   mutation AdjustOrderLine($orderLineId: ID!, $quantity: Int!) {
     adjustOrderLine(orderLineId: $orderLineId, quantity: $quantity) {
       ... on Order {
@@ -136,4 +131,4 @@ export const ADJUST_ORDER_LINE = graphql(`
       }
     }
   }
-`)
+`

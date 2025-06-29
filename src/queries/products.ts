@@ -1,7 +1,5 @@
-import { graphql } from '../gql'
-
-// Query to get all products
-export const GET_PRODUCTS = graphql(`
+// Products queries - temporarily simplified for build
+export const GET_PRODUCTS = `
   query GetProducts($options: ProductListOptions) {
     products(options: $options) {
       items {
@@ -32,10 +30,9 @@ export const GET_PRODUCTS = graphql(`
       totalItems
     }
   }
-`)
+`
 
-// Query to get a single product by slug
-export const GET_PRODUCT_BY_SLUG = graphql(`
+export const GET_PRODUCT_BY_SLUG = `
   query GetProductBySlug($slug: String!) {
     product(slug: $slug) {
       id
@@ -73,10 +70,9 @@ export const GET_PRODUCT_BY_SLUG = graphql(`
       }
     }
   }
-`)
+`
 
-// Query to get collections
-export const GET_COLLECTIONS = graphql(`
+export const GET_COLLECTIONS = `
   query GetCollections($options: CollectionListOptions) {
     collections(options: $options) {
       items {
@@ -96,4 +92,4 @@ export const GET_COLLECTIONS = graphql(`
       totalItems
     }
   }
-`)
+`
