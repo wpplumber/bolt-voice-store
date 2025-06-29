@@ -1,0 +1,135 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout>
+  <Header />
+  <main class="min-h-screen bg-base-100">
+    <div class="container-custom py-16">
+      <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold text-center mb-12">Checkout</h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <!-- Checkout Form -->
+          <div class="space-y-6">
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body">
+                <h2 class="card-title mb-4">Shipping Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">First Name</span>
+                    </label>
+                    <input type="text" class="input input-bordered" />
+                  </div>
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Last Name</span>
+                    </label>
+                    <input type="text" class="input input-bordered" />
+                  </div>
+                </div>
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Email</span>
+                  </label>
+                  <input type="email" class="input input-bordered" />
+                </div>
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Address</span>
+                  </label>
+                  <input type="text" class="input input-bordered" />
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">City</span>
+                    </label>
+                    <input type="text" class="input input-bordered" />
+                  </div>
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">State</span>
+                    </label>
+                    <input type="text" class="input input-bordered" />
+                  </div>
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">ZIP Code</span>
+                    </label>
+                    <input type="text" class="input input-bordered" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body">
+                <h2 class="card-title mb-4">Payment Information</h2>
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text">Card Number</span>
+                  </label>
+                  <input type="text" placeholder="1234 5678 9012 3456" class="input input-bordered" />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Expiry Date</span>
+                    </label>
+                    <input type="text" placeholder="MM/YY" class="input input-bordered" />
+                  </div>
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">CVV</span>
+                    </label>
+                    <input type="text" placeholder="123" class="input input-bordered" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Order Summary -->
+          <div class="space-y-6">
+            <div class="card bg-base-100 shadow-xl">
+              <div class="card-body">
+                <h2 class="card-title mb-4">Order Summary</h2>
+                <div class="space-y-4">
+                  <div class="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>$0.00</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Shipping</span>
+                    <span>$5.99</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Tax</span>
+                    <span>$0.00</span>
+                  </div>
+                  <div class="divider"></div>
+                  <div class="flex justify-between text-lg font-bold">
+                    <span>Total</span>
+                    <span>$5.99</span>
+                  </div>
+                </div>
+                <button class="btn btn-primary w-full mt-6">Place Order</button>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <p class="text-sm text-base-content/70">
+                Your cart is empty. <a href="/" class="link link-primary">Continue shopping</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Layout>

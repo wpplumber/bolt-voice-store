@@ -1,0 +1,56 @@
+---
+export async function getStaticPaths() {
+  // Define the static categories for build time
+  const categories = [
+    { params: { category: 'new' }, props: { title: 'New Arrivals', description: 'Latest baby sport shoes' } },
+    { params: { category: 'boys' }, props: { title: 'Boys Collection', description: 'Sport shoes for boys' } },
+    { params: { category: 'girls' }, props: { title: 'Girls Collection', description: 'Sport shoes for girls' } },
+    { params: { category: 'running' }, props: { title: 'Running Shoes', description: 'Athletic running shoes for kids' } },
+    { params: { category: 'casual' }, props: { title: 'Casual Shoes', description: 'Everyday casual shoes' } },
+    { params: { category: 'outdoor' }, props: { title: 'Outdoor Shoes', description: 'Durable outdoor shoes' } }
+  ];
+  
+  return categories;
+}
+
+const { category } = Astro.params;
+const { title, description } = Astro.props;
+
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Layout>
+  <Header />
+  <main class="min-h-screen bg-base-100">
+    <div class="container-custom py-16">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold mb-4">{title}</h1>
+        <p class="text-lg text-base-content/70">{description}</p>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Placeholder products for now -->
+        <div class="card bg-base-100 shadow-xl">
+          <figure class="aspect-square">
+            <img src="https://images.pexels.com/photos/1619801/pexels-photo-1619801.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1" alt="Product" class="w-full h-full object-cover" />
+          </figure>
+          <div class="card-body">
+            <h3 class="card-title">Sample Product</h3>
+            <p class="text-sm text-base-content/70">Coming soon...</p>
+            <div class="card-actions justify-end">
+              <span class="text-xl font-bold text-primary">$45</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <p class="text-base-content/70 mb-4">More products coming soon!</p>
+        <a href="/" class="btn btn-primary">Back to Home</a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Layout>

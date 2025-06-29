@@ -1,0 +1,77 @@
+---
+export async function getStaticPaths() {
+  // Define some sample product IDs for build time
+  const products = [
+    { params: { id: '1' }, props: { name: 'Tiny Runner Pro', price: 45 } },
+    { params: { id: '2' }, props: { name: 'Baby Air Max', price: 65 } },
+    { params: { id: '3' }, props: { name: 'Little Explorer', price: 38 } }
+  ];
+  
+  return products;
+}
+
+const { id } = Astro.params;
+const { name, price } = Astro.props;
+
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+---
+
+<Layout>
+  <Header />
+  <main class="min-h-screen bg-base-100">
+    <div class="container-custom py-16">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Product Image -->
+        <div class="aspect-square">
+          <img 
+            src="https://images.pexels.com/photos/1619801/pexels-photo-1619801.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&dpr=1" 
+            alt={name}
+            class="w-full h-full object-cover rounded-lg shadow-lg"
+          />
+        </div>
+        
+        <!-- Product Details -->
+        <div class="flex flex-col justify-center">
+          <h1 class="text-4xl font-bold mb-4">{name}</h1>
+          <p class="text-2xl font-bold text-primary mb-6">${price}</p>
+          <p class="text-base-content/70 mb-8">
+            High-quality baby sport shoes designed for comfort and durability. Perfect for your little one's adventures.
+          </p>
+          
+          <div class="space-y-4 mb-8">
+            <div>
+              <span class="font-semibold">Size:</span>
+              <div class="flex gap-2 mt-2">
+                <button class="btn btn-outline btn-sm">6</button>
+                <button class="btn btn-outline btn-sm">7</button>
+                <button class="btn btn-outline btn-sm">8</button>
+                <button class="btn btn-outline btn-sm">9</button>
+              </div>
+            </div>
+            
+            <div>
+              <span class="font-semibold">Color:</span>
+              <div class="flex gap-2 mt-2">
+                <button class="btn btn-circle btn-sm bg-blue-500"></button>
+                <button class="btn btn-circle btn-sm bg-red-500"></button>
+                <button class="btn btn-circle btn-sm bg-green-500"></button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex gap-4">
+            <button class="btn btn-primary flex-1">Add to Cart</button>
+            <button class="btn btn-outline">❤️</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-16">
+        <a href="/" class="btn btn-ghost">← Back to Home</a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</Layout>
