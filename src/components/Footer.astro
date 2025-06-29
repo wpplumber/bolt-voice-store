@@ -1,0 +1,50 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="footer p-10 bg-base-200 text-base-content">
+  <div>
+    <span class="footer-title">Shop</span> 
+    <a href="/collections/new" class="link link-hover">New Arrivals</a> 
+    <a href="/collections/boys" class="link link-hover">Boys</a> 
+    <a href="/collections/girls" class="link link-hover">Girls</a> 
+    <a href="/sale" class="link link-hover">Sale</a>
+  </div> 
+  <div>
+    <span class="footer-title">Company</span> 
+    <a href="/about" class="link link-hover">About us</a> 
+    <a href="/contact" class="link link-hover">Contact</a> 
+    <a href="/careers" class="link link-hover">Careers</a> 
+    <a href="/press" class="link link-hover">Press kit</a>
+  </div> 
+  <div>
+    <span class="footer-title">Legal</span> 
+    <a href="/terms" class="link link-hover">Terms of use</a> 
+    <a href="/privacy" class="link link-hover">Privacy policy</a> 
+    <a href="/cookie" class="link link-hover">Cookie policy</a>
+  </div> 
+  <div>
+    <span class="footer-title">Newsletter</span> 
+    <div class="form-control w-80">
+      <label class="label">
+        <span class="label-text">Enter your email address</span>
+      </label> 
+      <div class="relative">
+        <input type="text" placeholder="username@site.com" class="input input-bordered w-full pr-16" /> 
+        <button class="btn btn-primary absolute top-0 right-0 rounded-l-none">Subscribe</button>
+      </div>
+    </div>
+  </div>
+</footer>
+<footer class="footer px-10 py-4 border-t bg-base-200 text-base-content border-base-300">
+  <div class="items-center grid-flow-col">
+    <p>BabyShoes © {currentYear} - All rights reserved</p>
+  </div> 
+  <div class="md:place-self-center md:justify-self-end">
+    <div class="grid grid-flow-col gap-4">
+      <a href="https://twitter.com" class="link link-hover">Twitter</a>
+      <a href="https://youtube.com" class="link link-hover">YouTube</a>
+      <a href="https://facebook.com" class="link link-hover">Facebook</a>
+    </div>
+  </div>
+</footer>

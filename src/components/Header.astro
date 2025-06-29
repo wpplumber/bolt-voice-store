@@ -1,0 +1,29 @@
+---
+import SearchBar from './SearchBar.vue';
+import CartButton from './CartButton.vue';
+import BoltBadge from './BoltBadge.vue';
+---
+
+<header class="bg-base-100 shadow-lg">
+  <div class="container-custom py-4">
+    <div class="flex items-center justify-between">
+      <a href="/" class="text-2xl font-bold text-primary">BabyShoes</a>
+      
+      <div class="hidden md:flex items-center space-x-6">
+        <SearchBar client:load />
+        <nav class="flex items-center space-x-4">
+          <a href="/collections/new" class="link link-hover">New Arrivals</a>
+          <a href="/collections/boys" class="link link-hover">Boys</a>
+          <a href="/collections/girls" class="link link-hover">Girls</a>
+        </nav>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <BoltBadge client:load />
+        <a href="/signin" class="btn btn-ghost btn-sm">Sign In</a>
+        <a href="/signup" class="btn btn-primary btn-sm">Sign Up</a>
+        <CartButton client:load />
+      </div>
+    </div>
+  </div>
+</header>

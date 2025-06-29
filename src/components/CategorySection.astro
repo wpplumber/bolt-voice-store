@@ -1,0 +1,33 @@
+---
+const categories = [
+  {
+    title: "New Arrivals",
+    image: "https://images.pexels.com/photos/1619801/pexels-photo-1619801.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    link: "/collections/new"
+  },
+  {
+    title: "Boys Collection",
+    image: "https://images.pexels.com/photos/1148998/pexels-photo-1148998.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    link: "/collections/boys"
+  },
+  {
+    title: "Girls Collection",
+    image: "https://images.pexels.com/photos/1620760/pexels-photo-1620760.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+    link: "/collections/girls"
+  }
+];
+---
+
+<section class="py-16 container-custom">
+  <h2 class="text-3xl font-bold text-center mb-12">Shop by Category</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    {categories.map(category => (
+      <a href={category.link} class="card bg-base-100 shadow-xl image-full transition-transform hover:scale-105">
+        <figure><img src={category.image} alt={category.title} /></figure>
+        <div class="card-body items-center justify-center">
+          <h3 class="card-title text-2xl text-white">{category.title}</h3>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>
