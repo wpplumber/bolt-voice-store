@@ -35,7 +35,7 @@
                     <div>
                       <DialogTitle class="text-xl font-bold">Voice Product Search</DialogTitle>
                       <p class="text-sm text-base-content/70">
-                        Tap the microphone and say something like "Show me running shoes under $50"
+                        Say something like "Show me shoes under $50" or click a category below
                       </p>
                     </div>
                   </div>
@@ -49,6 +49,21 @@
 
               <!-- Main content - FULL WIDTH, scrollable with better height management -->
               <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+                <!-- Smart Category Tags from Vendure -->
+                <div v-if="availableCategories.length > 0" class="text-center mb-8">
+                  <div class="flex flex-wrap justify-center gap-2 mb-4">
+                    <span class="text-sm text-base-content/60 mr-2">Available categories:</span>
+                    <button 
+                      v-for="category in availableCategories.slice(0, 8)" 
+                      :key="category"
+                      @click="searchByCategory(category)"
+                      class="badge badge-outline hover:badge-primary cursor-pointer transition-colors"
+                    >
+                      {{ category }}
+                    </button>
+                  </div>
+                </div>
+
                 <!-- Fallback Input -->
                 <div v-if="showFallbackInput" class="max-w-md mx-auto mb-8">
                   <div class="join w-full">
@@ -97,7 +112,7 @@
                     <div class="loading loading-spinner loading-lg"></div>
                     <div class="flex flex-col items-center">
                       <span class="text-lg font-medium">Searching...</span>
-                      <span class="text-sm text-base-content/60">Finding the perfect shoes for you</span>
+                      <span class="text-sm text-base-content/60">Finding products in our store</span>
                     </div>
                   </div>
                   <div v-else-if="voiceState.isPlaying" class="flex flex-col items-center gap-3 text-accent">
@@ -167,12 +182,9 @@
                     class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative"
                   >
                     <!-- Vendure Product Badge -->
-                    <div 
-                      v-if="product.id.startsWith('vendure-')" 
-                      class="absolute top-2 left-2 z-10 badge badge-success badge-sm"
-                    >
+                    <div class="absolute top-2 left-2 z-10 badge badge-success badge-sm">
                       <div class="w-1 h-1 bg-white rounded-full mr-1 animate-pulse"></div>
-                      VENDURE
+                      LIVE
                     </div>
                     
                     <figure class="aspect-square overflow-hidden">
@@ -188,11 +200,12 @@
                       <p class="text-xs sm:text-sm text-base-content/70 line-clamp-2 mb-2">
                         {{ product.description }}
                       </p>
-                      <!-- Product Tags/Categories -->
+                      <!-- Product Category Tags -->
                       <div class="flex flex-wrap gap-1 mb-2">
-                        <span class="badge badge-outline badge-xs">{{ product.category }}</span>
-                        <span v-if="product.id.startsWith('vendure-')" class="badge badge-primary badge-xs">Backend</span>
-                        <span v-else class="badge badge-secondary badge-xs">Mock</span>
+                        <span class="badge badge-primary badge-sm">{{ product.category }}</span>
+                        <span v-for="collection in product.collections" :key="collection" class="badge badge-outline badge-xs">
+                          {{ collection }}
+                        </span>
                       </div>
                       <div class="flex items-center justify-between">
                         <span class="text-lg sm:text-2xl font-bold text-primary">${{ product.price }}</span>
@@ -225,40 +238,32 @@
                   <div class="text-6xl mb-4">🔍</div>
                   <h3 class="text-2xl font-semibold mb-2">No matches found</h3>
                   <p class="text-base-content/70 mb-6">
-                    Try saying something like "running shoes under $100" or "casual shoes for kids"
+                    Try searching for one of our available categories or say "show me all products"
                   </p>
                   <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button @click="startVoiceSearch" class="btn btn-primary">
-                      🎤 Try Voice Again
-                    </button>
-                    <button @click="showFallbackInput = true" class="btn btn-outline">
-                      ⌨️ Type Search
-                    </button>
+                    <button @click="startVoiceSearch" class="btn btn-primary">🎤 Try Voice Again</button>
+                    <button @click="showAllProducts" class="btn btn-outline">👀 Show All Products</button>
                   </div>
                 </div>
 
                 <!-- Initial State -->
-                <div v-if="!hasSearched && !voiceState.isProcessing" class="text-center py-12">
+                <div v-if="!hasSearched && !voiceState.isProcessing && displayedProducts.length === 0" class="text-center py-12">
                   <div class="text-6xl mb-4">👟</div>
-                  <h3 class="text-2xl font-semibold mb-2">Ready to help you find shoes!</h3>
+                  <h3 class="text-2xl font-semibold mb-2">Ready to help you find products!</h3>
                   <p class="text-base-content/70 mb-6">
-                    Use voice search to find the perfect baby shoes
+                    Use voice search to find products from our store
                   </p>
                   <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button @click="startVoiceSearch" class="btn btn-primary btn-lg">
-                      🎤 Start Voice Search
-                    </button>
-                    <button @click="showFallbackInput = true" class="btn btn-outline">
-                      ⌨️ Type Instead
-                    </button>
+                    <button @click="startVoiceSearch" class="btn btn-primary btn-lg">🎤 Start Voice Search</button>
+                    <button @click="showAllProducts" class="btn btn-outline">👀 Browse All Products</button>
                   </div>
                   
-                  <!-- Example queries -->
-                  <div class="mt-8 max-w-2xl mx-auto">
+                  <!-- Smart Example queries based on actual categories -->
+                  <div v-if="availableCategories.length > 0" class="mt-8 max-w-2xl mx-auto">
                     <h4 class="text-lg font-semibold mb-4">Try saying:</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <button 
-                        v-for="example in exampleQueries" 
+                        v-for="example in smartExampleQueries" 
                         :key="example"
                         @click="simulateVoiceQuery(example)"
                         class="btn btn-ghost btn-sm text-left justify-start"
@@ -278,17 +283,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { VoiceService } from '../services/voiceService'
-import type { Product, VoiceState } from '../types/voice'
+import { VendureVoiceService } from '../services/vendureVoiceService'
+import type { VendureProduct, VoiceState } from '../types/vendure'
 
 // Services
-const voiceService = new VoiceService()
+const vendureVoiceService = new VendureVoiceService()
 
 // Reactive state
 const isOpen = ref(false)
-const displayedProducts = ref<Product[]>([])
+const displayedProducts = ref<VendureProduct[]>([])
+const availableCategories = ref<string[]>([])
 const hasSearched = ref(false)
 const showFallbackInput = ref(false)
 const fallbackQuery = ref('')
@@ -302,13 +308,25 @@ const voiceState = reactive<VoiceState>({
   error: null
 })
 
-// Example queries
-const exampleQueries = [
-  "running shoes under $50",
-  "casual shoes for kids",
-  "athletic shoes in stock",
-  "outdoor shoes under $40"
-]
+// Smart example queries based on actual categories
+const smartExampleQueries = computed(() => {
+  const examples = []
+  
+  if (availableCategories.value.length > 0) {
+    // Use first few actual categories
+    const categories = availableCategories.value.slice(0, 3)
+    examples.push(`show me ${categories[0]} products`)
+    if (categories[1]) examples.push(`find ${categories[1]} under $100`)
+    if (categories[2]) examples.push(`${categories[2]} in stock`)
+  }
+  
+  // Add generic examples
+  examples.push('show me all products')
+  examples.push('products under $50')
+  examples.push('what do you have in stock')
+  
+  return examples.slice(0, 6)
+})
 
 // Event handlers
 function handleOpenVoiceSearch() {
@@ -336,6 +354,30 @@ function closeModal() {
   voiceState.error = null
 }
 
+// Initialize
+onMounted(async () => {
+  await loadInitialData()
+})
+
+async function loadInitialData() {
+  try {
+    voiceState.isProcessing = true
+    
+    // Load available categories from Vendure
+    availableCategories.value = await vendureVoiceService.getAvailableCategories()
+    console.log('Available categories:', availableCategories.value)
+    
+    // Load initial products to show
+    displayedProducts.value = await vendureVoiceService.getAllProducts(12)
+    
+  } catch (error) {
+    console.error('Failed to load initial data:', error)
+    voiceState.error = 'Failed to load products from store'
+  } finally {
+    voiceState.isProcessing = false
+  }
+}
+
 // Voice search functionality
 async function startVoiceSearch() {
   if (voiceState.isListening || voiceState.isProcessing) return
@@ -345,13 +387,7 @@ async function startVoiceSearch() {
     voiceState.error = null
     voiceState.transcript = ''
 
-    const transcript = await Promise.race([
-      voiceService.startListening(),
-      new Promise<string>((_, reject) => 
-        setTimeout(() => reject(new Error('Listening timeout - please try again')), 30000)
-      )
-    ])
-
+    const transcript = await vendureVoiceService.startListening()
     voiceState.transcript = transcript
     voiceState.isListening = false
 
@@ -363,7 +399,6 @@ async function startVoiceSearch() {
   } catch (error) {
     voiceState.isListening = false
     voiceState.error = error instanceof Error ? error.message : 'Voice recognition failed'
-    console.error('Voice search error:', error)
   }
 }
 
@@ -384,28 +419,26 @@ async function processVoiceCommand(transcript: string) {
     voiceState.isProcessing = true
     hasSearched.value = true
 
-    const filters = voiceService.parseVoiceCommand(transcript)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    const results = voiceService.searchProducts(filters)
+    // Parse and search using Vendure service
+    const results = await vendureVoiceService.searchProducts(transcript)
     displayedProducts.value = results
 
     voiceState.isProcessing = false
 
-    const responseText = voiceService.generateResponseText(results, filters)
+    // Generate and speak response
+    const responseText = vendureVoiceService.generateResponseText(results, transcript)
     currentResponse.value = responseText
     await speakResponse(responseText)
   } catch (error) {
     voiceState.isProcessing = false
     voiceState.error = error instanceof Error ? error.message : 'Search failed'
-    console.error('Voice command processing error:', error)
   }
 }
 
 async function speakResponse(text: string) {
   try {
     voiceState.isPlaying = true
-    await voiceService.speak(text)
+    await vendureVoiceService.speak(text)
   } catch (error) {
     console.error('TTS error:', error)
   } finally {
@@ -428,20 +461,32 @@ async function simulateVoiceQuery(query: string) {
   await processVoiceCommand(query)
 }
 
+async function searchByCategory(category: string) {
+  const query = `show me ${category} products`
+  voiceState.transcript = query
+  await processVoiceCommand(query)
+}
+
+async function showAllProducts() {
+  const query = 'show me all products'
+  voiceState.transcript = query
+  await processVoiceCommand(query)
+}
+
 function retryVoiceSearch() {
   clearError()
   startVoiceSearch()
 }
 
-function addToCart(product: Product) {
+function addToCart(product: VendureProduct) {
   console.log('Adding to cart:', product)
   
-  // Show success feedback
+  // Show success toast
   const toast = document.createElement('div')
   toast.className = 'toast toast-top toast-end'
   toast.innerHTML = `
-    <div class="alert alert-success">
-      <span>Added ${product.name.replace(' (Live)', '')} to cart!</span>
+    <div class="alert alert-success shadow-lg">
+      <span>Added ${product.name} to cart!</span>
     </div>
   `
   document.body.appendChild(toast)
