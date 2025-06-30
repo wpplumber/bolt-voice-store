@@ -14,10 +14,10 @@
         <div class="fixed top-20 left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm" />
       </TransitionChild>
 
-      <!-- Modal positioning - FULL SCREEN -->
+      <!-- Modal positioning - positioned below header with natural height -->
       <div class="fixed inset-0">
-        <!-- Modal content positioned below header, FULL WIDTH AND HEIGHT -->
-        <div class="absolute top-20 left-0 right-0 bottom-0">
+        <!-- Modal content positioned below header, FULL WIDTH with natural height -->
+        <div class="absolute top-20 left-0 right-0">
           <TransitionChild
             enter="transform transition ease-in-out duration-500"
             enter-from="translate-y-full opacity-0"
@@ -26,7 +26,7 @@
             leave-from="translate-y-0 opacity-100"
             leave-to="translate-y-full opacity-0"
           >
-            <DialogPanel class="w-full h-full bg-base-100 shadow-2xl flex flex-col">
+            <DialogPanel class="w-full bg-base-100 shadow-2xl flex flex-col min-h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)]">
               <!-- Header with close button -->
               <div class="flex-shrink-0 bg-base-100 border-b border-base-200 px-4 sm:px-6 py-4 shadow-sm">
                 <div class="flex items-center justify-between">
@@ -47,7 +47,7 @@
                 </div>
               </div>
 
-              <!-- Main content - FULL WIDTH, scrollable -->
+              <!-- Main content - FULL WIDTH, scrollable with better height management -->
               <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
                 <!-- Fallback Input -->
                 <div v-if="showFallbackInput" class="max-w-md mx-auto mb-8">
@@ -150,7 +150,7 @@
                 <!-- Products Grid - FULL WIDTH -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
                   <!-- Loading Shimmer -->
-                  <div v-if="voiceState.isProcessing" v-for="n in 12" :key="`shimmer-${n}`" class="card bg-base-100 shadow-xl">
+                  <div v-if="voiceState.isProcessing" v-for="n in 8" :key="`shimmer-${n}`" class="card bg-base-100 shadow-xl">
                     <div class="aspect-square bg-base-300 animate-shimmer"></div>
                     <div class="card-body p-3">
                       <div class="h-4 bg-base-300 rounded animate-shimmer mb-2"></div>
