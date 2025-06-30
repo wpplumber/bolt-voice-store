@@ -49,15 +49,29 @@
 
               <!-- Main content - FULL WIDTH, scrollable with better height management -->
               <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
-                <!-- Smart Category Tags from Vendure -->
-                <div v-if="availableCategories.length > 0" class="text-center mb-8">
+                <!-- Search Again Button - Only show when we have results -->
+                <div v-if="hasSearched && displayedProducts.length > 0" class="text-center mb-6">
+                  <button 
+                    @click="startNewSearch"
+                    class="btn btn-primary btn-lg gap-2"
+                    :disabled="voiceState.isListening || voiceState.isProcessing"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                    Search Again
+                  </button>
+                </div>
+
+                <!-- Smart Category Tags from Vendure - Only show when not searching -->
+                <div v-if="availableCategories.length > 0 && !voiceState.isListening && !voiceState.isProcessing" class="text-center mb-8">
+                  <h3 class="text-lg font-semibold mb-4">Quick Search Categories</h3>
                   <div class="flex flex-wrap justify-center gap-2 mb-4">
-                    <span class="text-sm text-base-content/60 mr-2">Available categories:</span>
                     <button 
                       v-for="category in availableCategories.slice(0, 8)" 
                       :key="category"
                       @click="searchByCategory(category)"
-                      class="badge badge-outline text-base-content hover:badge-accent hover:text-white cursor-pointer transition-colors"
+                      class="badge badge-outline text-base-content hover:badge-accent hover:text-white cursor-pointer transition-colors text-sm py-3 px-4"
                     >
                       {{ category }}
                     </button>
@@ -163,7 +177,7 @@
                 </div>
 
                 <!-- Products Grid - FULL WIDTH -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
+                <div v-if="hasSearched" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
                   <!-- Loading Shimmer -->
                   <div v-if="voiceState.isProcessing" v-for="n in 8" :key="`shimmer-${n}`" class="card bg-base-100 shadow-xl">
                     <div class="aspect-square bg-base-300 animate-shimmer"></div>
@@ -234,7 +248,7 @@
                 </div>
 
                 <!-- No Results -->
-                <div v-if="!voiceState.isProcessing && displayedProducts.length === 0 && hasSearched" class="text-center py-12">
+                <div v-if="hasSearched && !voiceState.isProcessing && displayedProducts.length === 0" class="text-center py-12">
                   <div class="text-6xl mb-4">🔍</div>
                   <h3 class="text-2xl font-semibold mb-2">No matches found</h3>
                   <p class="text-base-content/70 mb-6">
@@ -246,15 +260,20 @@
                   </div>
                 </div>
 
-                <!-- Initial State -->
-                <div v-if="!hasSearched && !voiceState.isProcessing && displayedProducts.length === 0" class="text-center py-12">
+                <!-- Initial State - Welcome Screen -->
+                <div v-if="!hasSearched && !voiceState.isProcessing && !voiceState.isListening" class="text-center py-12">
                   <div class="text-6xl mb-4">👟</div>
                   <h3 class="text-2xl font-semibold mb-2">Ready to help you find products!</h3>
                   <p class="text-base-content/70 mb-6">
                     Use voice search to find products from our store
                   </p>
-                  <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button @click="startVoiceSearch" class="btn btn-primary btn-lg">🎤 Start Voice Search</button>
+                  <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                    <button @click="startVoiceSearch" class="btn btn-primary btn-lg gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                      </svg>
+                      Start Voice Search
+                    </button>
                     <button @click="showAllProducts" class="btn btn-outline">👀 Browse All Products</button>
                   </div>
                   
@@ -266,7 +285,7 @@
                         v-for="example in smartExampleQueries" 
                         :key="example"
                         @click="simulateVoiceQuery(example)"
-                        class="btn btn-ghost btn-sm text-left justify-start"
+                        class="btn btn-ghost btn-sm text-left justify-start hover:bg-base-200"
                       >
                         "{{ example }}"
                       </button>
@@ -345,6 +364,10 @@ function closeModal() {
   isOpen.value = false
   
   // Reset state when modal closes
+  resetSearchState()
+}
+
+function resetSearchState() {
   hasSearched.value = false
   displayedProducts.value = []
   showFallbackInput.value = false
@@ -354,6 +377,18 @@ function closeModal() {
   voiceState.error = null
 }
 
+function startNewSearch() {
+  // Clear previous results but keep modal open
+  displayedProducts.value = []
+  hasSearched.value = false
+  voiceState.transcript = ''
+  voiceState.error = null
+  currentResponse.value = ''
+  
+  // Start voice search immediately
+  startVoiceSearch()
+}
+
 // Initialize
 onMounted(async () => {
   await loadInitialData()
@@ -361,20 +396,13 @@ onMounted(async () => {
 
 async function loadInitialData() {
   try {
-    voiceState.isProcessing = true
-    
     // Load available categories from Vendure
     availableCategories.value = await vendureVoiceService.getAvailableCategories()
     console.log('Available categories:', availableCategories.value)
     
-    // Load initial products to show
-    displayedProducts.value = await vendureVoiceService.getAllProducts(12)
-    
   } catch (error) {
     console.error('Failed to load initial data:', error)
-    voiceState.error = 'Failed to load products from store'
-  } finally {
-    voiceState.isProcessing = false
+    voiceState.error = 'Failed to load categories from store'
   }
 }
 
@@ -426,7 +454,7 @@ async function processVoiceCommand(transcript: string) {
     voiceState.isProcessing = false
 
     // Generate and speak response
-    const responseText = vendureVoiceService.generateResponseText(results, transcript)
+    const responseText = vendureVoiceService.generateResponseText(results)
     currentResponse.value = responseText
     await speakResponse(responseText)
   } catch (error) {
