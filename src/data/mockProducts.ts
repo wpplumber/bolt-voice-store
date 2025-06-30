@@ -77,7 +77,7 @@ export const mockProducts: Product[] = [
     id: '9',
     name: 'Playground Heroes',
     price: 52,
-    image: 'https://images.pexels.com/photos/1598511/pexels-photo-1598511.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+    image: 'https://images.pexels.com/photos/1456737/pexels-photo-1456737.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
     description: 'Playground-ready shoes with extra grip and protection',
     category: 'playground',
     inStock: false
