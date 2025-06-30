@@ -2,9 +2,11 @@
 import SearchBar from './SearchBar.vue';
 import CartButton from './CartButton.vue';
 import BoltBadge from './BoltBadge.vue';
+import VoiceSearchModal from './VoiceSearchModal.vue';
+import VoiceSearchButton from './VoiceSearchButton.vue';
 ---
 
-<header class="bg-base-100 shadow-lg">
+<header class="bg-base-100 shadow-lg relative z-50">
   <div class="container-custom py-4">
     <div class="flex items-center justify-between">
       <a href="/" class="text-2xl font-bold text-primary">TinyKicks</a>
@@ -26,4 +28,33 @@ import BoltBadge from './BoltBadge.vue';
       </div>
     </div>
   </div>
+  
+  <!-- Voice Search Modal and Button -->
+  <VoiceSearchModal client:load />
+  <VoiceSearchButton client:load />
 </header>
+
+<script>
+  // Global voice search modal state management
+  let isVoiceSearchOpen = false;
+  
+  // Listen for voice search events
+  document.addEventListener('DOMContentLoaded', () => {
+    // Handle search bar clicks
+    document.addEventListener('openVoiceSearch', () => {
+      isVoiceSearchOpen = true;
+      document.dispatchEvent(new CustomEvent('voiceSearchModalToggle', { detail: { isOpen: true } }));
+    });
+    
+    // Handle floating button clicks
+    document.addEventListener('voiceSearchButtonClick', () => {
+      isVoiceSearchOpen = !isVoiceSearchOpen;
+      document.dispatchEvent(new CustomEvent('voiceSearchModalToggle', { detail: { isOpen: isVoiceSearchOpen } }));
+    });
+    
+    // Handle modal close
+    document.addEventListener('voiceSearchModalClose', () => {
+      isVoiceSearchOpen = false;
+    });
+  });
+</script>
