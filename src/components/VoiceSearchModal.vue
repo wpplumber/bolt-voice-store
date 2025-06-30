@@ -14,254 +14,248 @@
         <div class="fixed top-20 left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm" />
       </TransitionChild>
 
-      <!-- Modal positioning -->
-      <div class="fixed inset-0 overflow-hidden">
-        <div class="absolute inset-0 overflow-hidden">
-          <!-- Modal content positioned below header, full width -->
-          <div class="pointer-events-none fixed top-20 left-0 right-0 bottom-0 flex">
-            <TransitionChild
-              enter="transform transition ease-in-out duration-500"
-              enter-from="translate-y-full opacity-0"
-              enter-to="translate-y-0 opacity-100"
-              leave="transform transition ease-in-out duration-300"
-              leave-from="translate-y-0 opacity-100"
-              leave-to="translate-y-full opacity-0"
-            >
-              <DialogPanel class="pointer-events-auto w-full bg-base-100 shadow-2xl">
-                <div class="flex flex-col min-h-full">
-                  <!-- Header with close button -->
-                  <div class="sticky top-0 z-10 bg-base-100 border-b border-base-200 px-6 py-4 shadow-sm">
-                    <div class="flex items-center justify-between max-w-7xl mx-auto">
-                      <div class="flex items-center gap-3">
-                        <div class="text-2xl">🎤</div>
-                        <div>
-                          <DialogTitle class="text-xl font-bold">Voice Product Search</DialogTitle>
-                          <p class="text-sm text-base-content/70">
-                            Tap the microphone and say something like "Show me running shoes under $50"
-                          </p>
-                        </div>
-                      </div>
-                      <button @click="closeModal" class="btn btn-ghost btn-sm btn-circle">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+      <!-- Modal positioning - FULL SCREEN -->
+      <div class="fixed inset-0">
+        <!-- Modal content positioned below header, FULL WIDTH AND HEIGHT -->
+        <div class="absolute top-20 left-0 right-0 bottom-0">
+          <TransitionChild
+            enter="transform transition ease-in-out duration-500"
+            enter-from="translate-y-full opacity-0"
+            enter-to="translate-y-0 opacity-100"
+            leave="transform transition ease-in-out duration-300"
+            leave-from="translate-y-0 opacity-100"
+            leave-to="translate-y-full opacity-0"
+          >
+            <DialogPanel class="w-full h-full bg-base-100 shadow-2xl flex flex-col">
+              <!-- Header with close button -->
+              <div class="flex-shrink-0 bg-base-100 border-b border-base-200 px-4 sm:px-6 py-4 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="text-2xl">🎤</div>
+                    <div>
+                      <DialogTitle class="text-xl font-bold">Voice Product Search</DialogTitle>
+                      <p class="text-sm text-base-content/70">
+                        Tap the microphone and say something like "Show me running shoes under $50"
+                      </p>
+                    </div>
+                  </div>
+                  <button @click="closeModal" class="btn btn-ghost btn-sm btn-circle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Main content - FULL WIDTH, scrollable -->
+              <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+                <!-- Fallback Input -->
+                <div v-if="showFallbackInput" class="max-w-md mx-auto mb-8">
+                  <div class="join w-full">
+                    <input 
+                      v-model="fallbackQuery"
+                      type="text" 
+                      placeholder="Type your search here..."
+                      class="input input-bordered join-item flex-1"
+                      @keyup.enter="handleFallbackSearch"
+                    />
+                    <button 
+                      @click="handleFallbackSearch"
+                      class="btn btn-primary join-item"
+                      :disabled="!fallbackQuery.trim() || voiceState.isProcessing"
+                    >
+                      Search
+                    </button>
+                  </div>
+                  <button 
+                    @click="showFallbackInput = false" 
+                    class="btn btn-ghost btn-sm mt-2"
+                  >
+                    Back to Voice Search
+                  </button>
+                </div>
+
+                <!-- Voice Status with Enhanced Feedback -->
+                <div class="text-center mb-8">
+                  <div v-if="voiceState.isListening" class="flex flex-col items-center gap-3 text-primary">
+                    <div class="relative">
+                      <div class="loading loading-dots loading-lg"></div>
+                      <div class="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <span class="text-lg font-medium">Listening...</span>
+                      <span class="text-sm text-base-content/60">Speak clearly into your microphone</span>
+                      <button 
+                        @click="stopListening" 
+                        class="btn btn-sm btn-outline btn-error mt-2"
+                      >
+                        Stop Listening
                       </button>
                     </div>
                   </div>
+                  <div v-else-if="voiceState.isProcessing" class="flex flex-col items-center gap-3 text-secondary">
+                    <div class="loading loading-spinner loading-lg"></div>
+                    <div class="flex flex-col items-center">
+                      <span class="text-lg font-medium">Searching...</span>
+                      <span class="text-sm text-base-content/60">Finding the perfect shoes for you</span>
+                    </div>
+                  </div>
+                  <div v-else-if="voiceState.isPlaying" class="flex flex-col items-center gap-3 text-accent">
+                    <div class="loading loading-ring loading-lg"></div>
+                    <div class="flex flex-col items-center">
+                      <span class="text-lg font-medium">Speaking...</span>
+                      <span class="text-sm text-base-content/60">{{ currentResponse }}</span>
+                      <button 
+                        @click="stopSpeaking" 
+                        class="btn btn-sm btn-outline btn-warning mt-2"
+                      >
+                        Stop Speaking
+                      </button>
+                    </div>
+                  </div>
+                  <div v-else-if="voiceState.transcript" class="text-base-content/70 max-w-md mx-auto">
+                    <div class="bg-base-200 p-4 rounded-lg">
+                      <span class="font-medium">You said:</span> 
+                      <span class="italic">"{{ voiceState.transcript }}"</span>
+                      <button 
+                        @click="clearTranscript" 
+                        class="btn btn-ghost btn-xs ml-2"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-                  <!-- Main content with container -->
-                  <div class="flex-1 px-6 py-8 overflow-y-auto">
-                    <div class="max-w-7xl mx-auto">
-                      <!-- Fallback Input -->
-                      <div v-if="showFallbackInput" class="max-w-md mx-auto mb-8">
-                        <div class="join w-full">
-                          <input 
-                            v-model="fallbackQuery"
-                            type="text" 
-                            placeholder="Type your search here..."
-                            class="input input-bordered join-item flex-1"
-                            @keyup.enter="handleFallbackSearch"
-                          />
-                          <button 
-                            @click="handleFallbackSearch"
-                            class="btn btn-primary join-item"
-                            :disabled="!fallbackQuery.trim() || voiceState.isProcessing"
+                <!-- Error Display -->
+                <div v-if="voiceState.error" class="alert alert-error max-w-md mx-auto mb-8">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <div class="font-bold">Voice Error</div>
+                    <div class="text-xs">{{ voiceState.error }}</div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button @click="retryVoiceSearch" class="btn btn-sm btn-ghost">
+                      🔄 Retry
+                    </button>
+                    <button @click="showFallbackInput = true; clearError()" class="btn btn-sm btn-ghost">
+                      ⌨️ Type Instead
+                    </button>
+                    <button @click="clearError" class="btn btn-sm btn-ghost">✕</button>
+                  </div>
+                </div>
+
+                <!-- Products Grid - FULL WIDTH -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6 mb-8">
+                  <!-- Loading Shimmer -->
+                  <div v-if="voiceState.isProcessing" v-for="n in 12" :key="`shimmer-${n}`" class="card bg-base-100 shadow-xl">
+                    <div class="aspect-square bg-base-300 animate-shimmer"></div>
+                    <div class="card-body p-3">
+                      <div class="h-4 bg-base-300 rounded animate-shimmer mb-2"></div>
+                      <div class="h-3 bg-base-300 rounded animate-shimmer mb-4 w-3/4"></div>
+                      <div class="h-8 bg-base-300 rounded animate-shimmer"></div>
+                    </div>
+                  </div>
+
+                  <!-- Product Cards -->
+                  <div 
+                    v-else
+                    v-for="product in displayedProducts" 
+                    :key="product.id"
+                    class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+                  >
+                    <figure class="aspect-square overflow-hidden">
+                      <img 
+                        :src="product.image" 
+                        :alt="product.name"
+                        class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                        loading="lazy"
+                      />
+                    </figure>
+                    <div class="card-body p-3 sm:p-4">
+                      <h3 class="card-title text-sm sm:text-lg font-semibold">{{ product.name }}</h3>
+                      <p class="text-xs sm:text-sm text-base-content/70 line-clamp-2 mb-2">
+                        {{ product.description }}
+                      </p>
+                      <div class="flex items-center justify-between">
+                        <span class="text-lg sm:text-2xl font-bold text-primary">${{ product.price }}</span>
+                        <div class="flex items-center gap-2">
+                          <div 
+                            :class="[
+                              'badge badge-xs sm:badge-sm',
+                              product.inStock ? 'badge-success' : 'badge-error'
+                            ]"
                           >
-                            Search
-                          </button>
+                            {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
+                          </div>
                         </div>
+                      </div>
+                      <div class="card-actions justify-end mt-4">
                         <button 
-                          @click="showFallbackInput = false" 
-                          class="btn btn-ghost btn-sm mt-2"
+                          class="btn btn-primary btn-xs sm:btn-sm w-full"
+                          :disabled="!product.inStock"
+                          @click="addToCart(product)"
                         >
-                          Back to Voice Search
+                          {{ product.inStock ? 'Add to Cart' : 'Unavailable' }}
                         </button>
-                      </div>
-
-                      <!-- Voice Status with Enhanced Feedback -->
-                      <div class="text-center mb-8">
-                        <div v-if="voiceState.isListening" class="flex flex-col items-center gap-3 text-primary">
-                          <div class="relative">
-                            <div class="loading loading-dots loading-lg"></div>
-                            <div class="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
-                          </div>
-                          <div class="flex flex-col items-center">
-                            <span class="text-lg font-medium">Listening...</span>
-                            <span class="text-sm text-base-content/60">Speak clearly into your microphone</span>
-                            <button 
-                              @click="stopListening" 
-                              class="btn btn-sm btn-outline btn-error mt-2"
-                            >
-                              Stop Listening
-                            </button>
-                          </div>
-                        </div>
-                        <div v-else-if="voiceState.isProcessing" class="flex flex-col items-center gap-3 text-secondary">
-                          <div class="loading loading-spinner loading-lg"></div>
-                          <div class="flex flex-col items-center">
-                            <span class="text-lg font-medium">Searching...</span>
-                            <span class="text-sm text-base-content/60">Finding the perfect shoes for you</span>
-                          </div>
-                        </div>
-                        <div v-else-if="voiceState.isPlaying" class="flex flex-col items-center gap-3 text-accent">
-                          <div class="loading loading-ring loading-lg"></div>
-                          <div class="flex flex-col items-center">
-                            <span class="text-lg font-medium">Speaking...</span>
-                            <span class="text-sm text-base-content/60">{{ currentResponse }}</span>
-                            <button 
-                              @click="stopSpeaking" 
-                              class="btn btn-sm btn-outline btn-warning mt-2"
-                            >
-                              Stop Speaking
-                            </button>
-                          </div>
-                        </div>
-                        <div v-else-if="voiceState.transcript" class="text-base-content/70 max-w-md mx-auto">
-                          <div class="bg-base-200 p-4 rounded-lg">
-                            <span class="font-medium">You said:</span> 
-                            <span class="italic">"{{ voiceState.transcript }}"</span>
-                            <button 
-                              @click="clearTranscript" 
-                              class="btn btn-ghost btn-xs ml-2"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Error Display -->
-                      <div v-if="voiceState.error" class="alert alert-error max-w-md mx-auto mb-8">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div>
-                          <div class="font-bold">Voice Error</div>
-                          <div class="text-xs">{{ voiceState.error }}</div>
-                        </div>
-                        <div class="flex gap-2">
-                          <button @click="retryVoiceSearch" class="btn btn-sm btn-ghost">
-                            🔄 Retry
-                          </button>
-                          <button @click="showFallbackInput = true; clearError()" class="btn btn-sm btn-ghost">
-                            ⌨️ Type Instead
-                          </button>
-                          <button @click="clearError" class="btn btn-sm btn-ghost">✕</button>
-                        </div>
-                      </div>
-
-                      <!-- Products Grid -->
-                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8">
-                        <!-- Loading Shimmer -->
-                        <div v-if="voiceState.isProcessing" v-for="n in 10" :key="`shimmer-${n}`" class="card bg-base-100 shadow-xl">
-                          <div class="aspect-square bg-base-300 animate-shimmer"></div>
-                          <div class="card-body">
-                            <div class="h-4 bg-base-300 rounded animate-shimmer mb-2"></div>
-                            <div class="h-3 bg-base-300 rounded animate-shimmer mb-4 w-3/4"></div>
-                            <div class="h-8 bg-base-300 rounded animate-shimmer"></div>
-                          </div>
-                        </div>
-
-                        <!-- Product Cards -->
-                        <div 
-                          v-else
-                          v-for="product in displayedProducts" 
-                          :key="product.id"
-                          class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
-                        >
-                          <figure class="aspect-square overflow-hidden">
-                            <img 
-                              :src="product.image" 
-                              :alt="product.name"
-                              class="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                              loading="lazy"
-                            />
-                          </figure>
-                          <div class="card-body p-4">
-                            <h3 class="card-title text-lg font-semibold">{{ product.name }}</h3>
-                            <p class="text-sm text-base-content/70 line-clamp-2 mb-2">
-                              {{ product.description }}
-                            </p>
-                            <div class="flex items-center justify-between">
-                              <span class="text-2xl font-bold text-primary">${{ product.price }}</span>
-                              <div class="flex items-center gap-2">
-                                <div 
-                                  :class="[
-                                    'badge badge-sm',
-                                    product.inStock ? 'badge-success' : 'badge-error'
-                                  ]"
-                                >
-                                  {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
-                                </div>
-                              </div>
-                            </div>
-                            <div class="card-actions justify-end mt-4">
-                              <button 
-                                class="btn btn-primary btn-sm w-full"
-                                :disabled="!product.inStock"
-                                @click="addToCart(product)"
-                              >
-                                {{ product.inStock ? 'Add to Cart' : 'Unavailable' }}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- No Results -->
-                      <div v-if="!voiceState.isProcessing && displayedProducts.length === 0 && hasSearched" class="text-center py-12">
-                        <div class="text-6xl mb-4">🔍</div>
-                        <h3 class="text-2xl font-semibold mb-2">No matches found</h3>
-                        <p class="text-base-content/70 mb-6">
-                          Try saying something like "running shoes under $100" or "casual shoes for kids"
-                        </p>
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                          <button @click="startVoiceSearch" class="btn btn-primary">
-                            🎤 Try Voice Again
-                          </button>
-                          <button @click="showFallbackInput = true" class="btn btn-outline">
-                            ⌨️ Type Search
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Initial State -->
-                      <div v-if="!hasSearched && !voiceState.isProcessing" class="text-center py-12">
-                        <div class="text-6xl mb-4">👟</div>
-                        <h3 class="text-2xl font-semibold mb-2">Ready to help you find shoes!</h3>
-                        <p class="text-base-content/70 mb-6">
-                          Use voice search to find the perfect baby shoes
-                        </p>
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                          <button @click="startVoiceSearch" class="btn btn-primary btn-lg">
-                            🎤 Start Voice Search
-                          </button>
-                          <button @click="showFallbackInput = true" class="btn btn-outline">
-                            ⌨️ Type Instead
-                          </button>
-                        </div>
-                        
-                        <!-- Example queries -->
-                        <div class="mt-8 max-w-2xl mx-auto">
-                          <h4 class="text-lg font-semibold mb-4">Try saying:</h4>
-                          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <button 
-                              v-for="example in exampleQueries" 
-                              :key="example"
-                              @click="simulateVoiceQuery(example)"
-                              class="btn btn-ghost btn-sm text-left justify-start"
-                            >
-                              "{{ example }}"
-                            </button>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
+
+                <!-- No Results -->
+                <div v-if="!voiceState.isProcessing && displayedProducts.length === 0 && hasSearched" class="text-center py-12">
+                  <div class="text-6xl mb-4">🔍</div>
+                  <h3 class="text-2xl font-semibold mb-2">No matches found</h3>
+                  <p class="text-base-content/70 mb-6">
+                    Try saying something like "running shoes under $100" or "casual shoes for kids"
+                  </p>
+                  <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button @click="startVoiceSearch" class="btn btn-primary">
+                      🎤 Try Voice Again
+                    </button>
+                    <button @click="showFallbackInput = true" class="btn btn-outline">
+                      ⌨️ Type Search
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Initial State -->
+                <div v-if="!hasSearched && !voiceState.isProcessing" class="text-center py-12">
+                  <div class="text-6xl mb-4">👟</div>
+                  <h3 class="text-2xl font-semibold mb-2">Ready to help you find shoes!</h3>
+                  <p class="text-base-content/70 mb-6">
+                    Use voice search to find the perfect baby shoes
+                  </p>
+                  <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button @click="startVoiceSearch" class="btn btn-primary btn-lg">
+                      🎤 Start Voice Search
+                    </button>
+                    <button @click="showFallbackInput = true" class="btn btn-outline">
+                      ⌨️ Type Instead
+                    </button>
+                  </div>
+                  
+                  <!-- Example queries -->
+                  <div class="mt-8 max-w-2xl mx-auto">
+                    <h4 class="text-lg font-semibold mb-4">Try saying:</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <button 
+                        v-for="example in exampleQueries" 
+                        :key="example"
+                        @click="simulateVoiceQuery(example)"
+                        class="btn btn-ghost btn-sm text-left justify-start"
+                      >
+                        "{{ example }}"
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DialogPanel>
+          </TransitionChild>
         </div>
       </div>
     </Dialog>
