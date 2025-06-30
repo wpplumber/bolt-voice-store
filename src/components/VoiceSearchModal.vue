@@ -37,6 +37,16 @@
                       <p class="text-sm text-base-content/70">
                         Tap the microphone and say something like "Show me running shoes under $50"
                       </p>
+                      <!-- Vendure Status Indicator -->
+                      <div class="flex items-center gap-2 mt-1">
+                        <div class="badge badge-success badge-xs">
+                          <div class="w-1 h-1 bg-white rounded-full mr-1"></div>
+                          Live Store Connected
+                        </div>
+                        <span class="text-xs text-base-content/60">
+                          {{ vendureProductsCount }} live products available
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <button @click="closeModal" class="btn btn-ghost btn-sm btn-circle">
@@ -164,8 +174,17 @@
                     v-else
                     v-for="product in displayedProducts" 
                     :key="product.id"
-                    class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105"
+                    class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative"
                   >
+                    <!-- Live Product Badge -->
+                    <div 
+                      v-if="product.id.startsWith('vendure-')" 
+                      class="absolute top-2 left-2 z-10 badge badge-success badge-sm"
+                    >
+                      <div class="w-1 h-1 bg-white rounded-full mr-1 animate-pulse"></div>
+                      LIVE
+                    </div>
+                    
                     <figure class="aspect-square overflow-hidden">
                       <img 
                         :src="product.image" 
@@ -227,7 +246,7 @@
                   <div class="text-6xl mb-4">👟</div>
                   <h3 class="text-2xl font-semibold mb-2">Ready to help you find shoes!</h3>
                   <p class="text-base-content/70 mb-6">
-                    Use voice search to find the perfect baby shoes
+                    Use voice search to find the perfect baby shoes from our mock collection and live store
                   </p>
                   <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <button @click="startVoiceSearch" class="btn btn-primary btn-lg">
@@ -278,6 +297,7 @@ const hasSearched = ref(false)
 const showFallbackInput = ref(false)
 const fallbackQuery = ref('')
 const currentResponse = ref('')
+const vendureProductsCount = ref(0)
 
 const voiceState = reactive<VoiceState>({
   isListening: false,
@@ -298,6 +318,8 @@ const exampleQueries = [
 // Event handlers
 function handleOpenVoiceSearch() {
   isOpen.value = true
+  // Update Vendure products count when modal opens
+  vendureProductsCount.value = voiceService.getVendureProductsCount()
 }
 
 function closeModal() {
@@ -426,7 +448,7 @@ function addToCart(product: Product) {
   toast.className = 'toast toast-top toast-end'
   toast.innerHTML = `
     <div class="alert alert-success">
-      <span>Added ${product.name} to cart!</span>
+      <span>Added ${product.name.replace(' (Live)', '')} to cart!</span>
     </div>
   `
   document.body.appendChild(toast)
@@ -450,6 +472,11 @@ function clearTranscript() {
 onMounted(() => {
   // Listen for voice search open events
   window.addEventListener('openVoiceSearch', handleOpenVoiceSearch)
+  
+  // Initialize Vendure products count
+  setTimeout(() => {
+    vendureProductsCount.value = voiceService.getVendureProductsCount()
+  }, 2000) // Give time for Vendure service to initialize
 })
 
 onUnmounted(() => {

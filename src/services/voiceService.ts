@@ -1,5 +1,6 @@
 import type { Product, SearchFilters } from '../types/voice'
 import { mockProducts } from '../data/mockProducts'
+import { VendureService } from './vendureService'
 
 // ElevenLabs API configuration
 const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY || 'sk_e12eba04d713558258f4e1189aa22c5e03cf27df68b8e92d'
@@ -9,6 +10,36 @@ const ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1'
 export class VoiceService {
   private mediaRecorder: MediaRecorder | null = null
   private audioChunks: Blob[] = []
+  private vendureService: VendureService
+  private vendureProducts: Product[] = []
+
+  constructor() {
+    this.vendureService = new VendureService()
+    this.initializeVendureProducts()
+  }
+
+  // Initialize Vendure products cache
+  private async initializeVendureProducts() {
+    try {
+      this.vendureProducts = await this.vendureService.fetchProducts(5) // Fetch top 5
+      console.log('Loaded Vendure products:', this.vendureProducts.length)
+    } catch (error) {
+      console.error('Failed to initialize Vendure products:', error)
+    }
+  }
+
+  // Get combined products (mock + Vendure)
+  private getCombinedProducts(): Product[] {
+    // Combine mock products with Vendure products
+    // Add a prefix to Vendure product IDs to avoid conflicts
+    const vendureProductsWithPrefix = this.vendureProducts.map(product => ({
+      ...product,
+      id: `vendure-${product.id}`,
+      name: `${product.name} (Live)` // Add indicator for Vendure products
+    }))
+
+    return [...mockProducts, ...vendureProductsWithPrefix]
+  }
 
   // Speech-to-Text using Web Speech API (primary) with ElevenLabs fallback
   async startListening(): Promise<string> {
@@ -253,9 +284,9 @@ export class VoiceService {
     return filters
   }
 
-  // Search products based on filters
+  // Search products based on filters (now includes Vendure products)
   searchProducts(filters: SearchFilters): Product[] {
-    let results = [...mockProducts]
+    let results = this.getCombinedProducts()
 
     // Filter by price range
     if (filters.maxPrice) {
@@ -283,17 +314,27 @@ export class VoiceService {
       })
     }
 
-    // Sort by relevance (in stock first, then by price)
+    // Sort by relevance (Vendure products first, then in stock, then by price)
     results.sort((a, b) => {
+      // Prioritize Vendure products
+      const aIsVendure = a.id.startsWith('vendure-')
+      const bIsVendure = b.id.startsWith('vendure-')
+      
+      if (aIsVendure && !bIsVendure) return -1
+      if (!aIsVendure && bIsVendure) return 1
+      
+      // Then by stock status
       if (a.inStock && !b.inStock) return -1
       if (!a.inStock && b.inStock) return 1
+      
+      // Finally by price
       return a.price - b.price
     })
 
     return results
   }
 
-  // Generate response text for TTS
+  // Generate response text for TTS (updated to mention Vendure products)
   generateResponseText(products: Product[], filters: SearchFilters): string {
     if (products.length === 0) {
       const suggestions = [
@@ -306,13 +347,21 @@ export class VoiceService {
     }
 
     const count = products.length
+    const vendureCount = products.filter(p => p.id.startsWith('vendure-')).length
     const priceRange = filters.maxPrice ? ` under $${filters.maxPrice}` : ''
     const category = filters.category ? ` ${filters.category}` : ''
     
     let response = `Found ${count} ${category} shoe${count === 1 ? '' : 's'}${priceRange}. `
     
+    if (vendureCount > 0) {
+      response += `Including ${vendureCount} live product${vendureCount === 1 ? '' : 's'} from our store. `
+    }
+    
     if (count <= 3) {
-      const productNames = products.slice(0, 3).map(p => `${p.name} for $${p.price}`).join(', ')
+      const productNames = products.slice(0, 3).map(p => {
+        const isLive = p.id.startsWith('vendure-')
+        return `${p.name.replace(' (Live)', '')} for $${p.price}${isLive ? ' from our live inventory' : ''}`
+      }).join(', ')
       response += `Here they are: ${productNames}.`
     } else {
       const minPrice = Math.min(...products.map(p => p.price))
@@ -321,9 +370,22 @@ export class VoiceService {
       
       // Mention top 2 products
       const topProducts = products.slice(0, 2)
-      response += `Top picks are ${topProducts.map(p => `${p.name} for $${p.price}`).join(' and ')}.`
+      response += `Top picks are ${topProducts.map(p => {
+        const isLive = p.id.startsWith('vendure-')
+        return `${p.name.replace(' (Live)', '')} for $${p.price}${isLive ? ' from live inventory' : ''}`
+      }).join(' and ')}.`
     }
 
     return response
+  }
+
+  // Refresh Vendure products cache
+  async refreshVendureProducts(): Promise<void> {
+    await this.initializeVendureProducts()
+  }
+
+  // Get current Vendure products count
+  getVendureProductsCount(): number {
+    return this.vendureProducts.length
   }
 }
