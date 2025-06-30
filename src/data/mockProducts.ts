@@ -86,7 +86,7 @@ export const mockProducts: Product[] = [
     id: '10',
     name: 'Tiny Trainers',
     price: 33,
-    image: 'https://images.pexels.com/photos/1598512/pexels-photo-1598512.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+    image: 'https://images.pexels.com/photos/1456706/pexels-photo-1456706.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
     description: 'Basic training shoes for everyday activities',
     category: 'training',
     inStock: true
