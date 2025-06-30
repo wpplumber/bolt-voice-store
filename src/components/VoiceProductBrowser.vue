@@ -253,15 +253,6 @@
       </div>
     </div>
 
-    <!-- Keyboard Shortcut Hint -->
-    <div class="fixed bottom-6 left-6 z-40 hidden lg:block">
-      <div class="tooltip tooltip-top" data-tip="Press Space to start voice search">
-        <div class="badge badge-outline">
-          <kbd class="kbd kbd-xs">Space</kbd>
-        </div>
-      </div>
-    </div>
-
     <!-- Success Toast Container -->
     <div id="toast-container" class="toast toast-top toast-end"></div>
   </section>
@@ -567,11 +558,6 @@ onUnmounted(() => {
   .fixed.bottom-6.right-6 {
     bottom: 1rem;
     right: 1rem;
-  }
-  
-  .fixed.bottom-6.left-6 {
-    bottom: 1rem;
-    left: 1rem;
   }
 }
 
