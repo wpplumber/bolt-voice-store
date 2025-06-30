@@ -10,7 +10,6 @@ export async function getStaticPaths() {
   return products;
 }
 
-const { id } = Astro.params;
 const { name, price } = Astro.props;
 
 import Layout from '../../layouts/Layout.astro';

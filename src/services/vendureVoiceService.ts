@@ -34,6 +34,20 @@ interface VendureCollectionResponse {
   description?: string
 }
 
+interface VendureProductsData {
+  products: {
+    items: VendureProductResponse[]
+    totalItems: number
+  }
+}
+
+interface VendureCollectionsData {
+  collections: {
+    items: VendureCollectionResponse[]
+    totalItems: number
+  }
+}
+
 export class VendureVoiceService {
   private cachedProducts: VendureProduct[] = []
   private cachedCategories: string[] = []
@@ -137,7 +151,7 @@ export class VendureVoiceService {
     try {
       const data = await graphqlClient.request(GET_COLLECTIONS, {
         options: { take: 20 }
-      })
+      }) as VendureCollectionsData
 
       const collections: VendureCollectionResponse[] = data.collections.items
       
@@ -160,7 +174,7 @@ export class VendureVoiceService {
     try {
       const data = await graphqlClient.request(GET_PRODUCTS, {
         options: { take: limit }
-      })
+      }) as VendureProductsData
 
       const products = this.transformProducts(data.products.items)
       this.cachedProducts = products
@@ -198,7 +212,7 @@ export class VendureVoiceService {
         }
       }
 
-      const data = await graphqlClient.request(GET_PRODUCTS, searchOptions)
+      const data = await graphqlClient.request(GET_PRODUCTS, searchOptions) as VendureProductsData
       let results = this.transformProducts(data.products.items)
 
       // Apply additional client-side filtering
@@ -375,7 +389,7 @@ export class VendureVoiceService {
   }
 
   // Generate response text for TTS
-  generateResponseText(products: VendureProduct[], transcript: string): string {
+  generateResponseText(products: VendureProduct[]): string {
     const count = products.length
 
     if (count === 0) {

@@ -13,7 +13,6 @@ export async function getStaticPaths() {
   return categories;
 }
 
-const { category } = Astro.params;
 const { title, description } = Astro.props;
 
 import Layout from '../../layouts/Layout.astro';
