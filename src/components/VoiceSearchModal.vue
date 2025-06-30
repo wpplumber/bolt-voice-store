@@ -57,7 +57,7 @@
                       v-for="category in availableCategories.slice(0, 8)" 
                       :key="category"
                       @click="searchByCategory(category)"
-                      class="badge badge-outline hover:badge-primary cursor-pointer transition-colors"
+                      class="badge badge-outline hover:badge-accent hover:text-accent-content cursor-pointer transition-colors"
                     >
                       {{ category }}
                     </button>
@@ -200,10 +200,10 @@
                       <p class="text-xs sm:text-sm text-base-content/70 line-clamp-2 mb-2">
                         {{ product.description }}
                       </p>
-                      <!-- Product Category Tags -->
+                      <!-- Product Category Tags with better contrast -->
                       <div class="flex flex-wrap gap-1 mb-2">
-                        <span class="badge badge-primary badge-sm">{{ product.category }}</span>
-                        <span v-for="collection in product.collections" :key="collection" class="badge badge-outline badge-xs">
+                        <span class="badge badge-accent text-accent-content badge-sm">{{ product.category }}</span>
+                        <span v-for="collection in product.collections" :key="collection" class="badge badge-secondary text-secondary-content badge-xs">
                           {{ collection }}
                         </span>
                       </div>
