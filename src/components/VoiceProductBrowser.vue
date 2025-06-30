@@ -5,37 +5,24 @@
       <div class="text-center mb-12">
         <h2 class="text-4xl font-bold mb-4">🎤 Voice Product Search</h2>
         <p class="text-lg text-base-content/70 mb-6">
-          Tap the microphone and say something like "Show me running shoes under $50"
+          Say something like "Show me shoes under $50" or "Find athletic footwear"
         </p>
         
-        <!-- Fallback Input -->
-        <div v-if="showFallbackInput" class="max-w-md mx-auto mb-6">
-          <div class="join w-full">
-            <input 
-              v-model="fallbackQuery"
-              type="text" 
-              placeholder="Type your search here..."
-              class="input input-bordered join-item flex-1"
-              @keyup.enter="handleFallbackSearch"
-            />
-            <button 
-              @click="handleFallbackSearch"
-              class="btn btn-primary join-item"
-              :disabled="!fallbackQuery.trim() || voiceState.isProcessing"
-            >
-              Search
-            </button>
-          </div>
+        <!-- Smart Category Tags from Vendure -->
+        <div v-if="availableCategories.length > 0" class="flex flex-wrap justify-center gap-2 mb-6">
+          <span class="text-sm text-base-content/60 mr-2">Available categories:</span>
           <button 
-            @click="showFallbackInput = false" 
-            class="btn btn-ghost btn-sm mt-2"
+            v-for="category in availableCategories.slice(0, 8)" 
+            :key="category"
+            @click="searchByCategory(category)"
+            class="badge badge-outline hover:badge-primary cursor-pointer transition-colors"
           >
-            Back to Voice Search
+            {{ category }}
           </button>
         </div>
       </div>
 
-      <!-- Voice Status with Enhanced Feedback -->
+      <!-- Voice Status -->
       <div class="text-center mb-8">
         <div v-if="voiceState.isListening" class="flex flex-col items-center gap-3 text-primary">
           <div class="relative">
@@ -45,10 +32,7 @@
           <div class="flex flex-col items-center">
             <span class="text-lg font-medium">Listening...</span>
             <span class="text-sm text-base-content/60">Speak clearly into your microphone</span>
-            <button 
-              @click="stopListening" 
-              class="btn btn-sm btn-outline btn-error mt-2"
-            >
+            <button @click="stopListening" class="btn btn-sm btn-outline btn-error mt-2">
               Stop Listening
             </button>
           </div>
@@ -57,7 +41,7 @@
           <div class="loading loading-spinner loading-lg"></div>
           <div class="flex flex-col items-center">
             <span class="text-lg font-medium">Searching...</span>
-            <span class="text-sm text-base-content/60">Finding the perfect shoes for you</span>
+            <span class="text-sm text-base-content/60">Finding products in our store</span>
           </div>
         </div>
         <div v-else-if="voiceState.isPlaying" class="flex flex-col items-center gap-3 text-accent">
@@ -65,10 +49,7 @@
           <div class="flex flex-col items-center">
             <span class="text-lg font-medium">Speaking...</span>
             <span class="text-sm text-base-content/60">{{ currentResponse }}</span>
-            <button 
-              @click="stopSpeaking" 
-              class="btn btn-sm btn-outline btn-warning mt-2"
-            >
+            <button @click="stopSpeaking" class="btn btn-sm btn-outline btn-warning mt-2">
               Stop Speaking
             </button>
           </div>
@@ -77,17 +58,12 @@
           <div class="bg-base-200 p-4 rounded-lg">
             <span class="font-medium">You said:</span> 
             <span class="italic">"{{ voiceState.transcript }}"</span>
-            <button 
-              @click="clearTranscript" 
-              class="btn btn-ghost btn-xs ml-2"
-            >
-              ✕
-            </button>
+            <button @click="clearTranscript" class="btn btn-ghost btn-xs ml-2">✕</button>
           </div>
         </div>
       </div>
 
-      <!-- Error Display with Better UX -->
+      <!-- Error Display -->
       <div v-if="voiceState.error" class="alert alert-error max-w-md mx-auto mb-8">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -97,12 +73,7 @@
           <div class="text-xs">{{ voiceState.error }}</div>
         </div>
         <div class="flex gap-2">
-          <button @click="retryVoiceSearch" class="btn btn-sm btn-ghost">
-            🔄 Retry
-          </button>
-          <button @click="showFallbackInput = true; clearError()" class="btn btn-sm btn-ghost">
-            ⌨️ Type Instead
-          </button>
+          <button @click="retryVoiceSearch" class="btn btn-sm btn-ghost">🔄 Retry</button>
           <button @click="clearError" class="btn btn-sm btn-ghost">✕</button>
         </div>
       </div>
@@ -139,15 +110,17 @@
             <p class="text-sm text-base-content/70 line-clamp-2 mb-2">
               {{ product.description }}
             </p>
+            <!-- Product Category Tags -->
+            <div class="flex flex-wrap gap-1 mb-2">
+              <span class="badge badge-primary badge-sm">{{ product.category }}</span>
+              <span v-for="collection in product.collections" :key="collection" class="badge badge-outline badge-xs">
+                {{ collection }}
+              </span>
+            </div>
             <div class="flex items-center justify-between">
               <span class="text-2xl font-bold text-primary">${{ product.price }}</span>
               <div class="flex items-center gap-2">
-                <div 
-                  :class="[
-                    'badge badge-sm',
-                    product.inStock ? 'badge-success' : 'badge-error'
-                  ]"
-                >
+                <div :class="['badge badge-sm', product.inStock ? 'badge-success' : 'badge-error']">
                   {{ product.inStock ? 'In Stock' : 'Out of Stock' }}
                 </div>
               </div>
@@ -170,40 +143,32 @@
         <div class="text-6xl mb-4">🔍</div>
         <h3 class="text-2xl font-semibold mb-2">No matches found</h3>
         <p class="text-base-content/70 mb-6">
-          Try saying something like "running shoes under $100" or "casual shoes for kids"
+          Try searching for one of our available categories or say "show me all products"
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button @click="startVoiceSearch" class="btn btn-primary">
-            🎤 Try Voice Again
-          </button>
-          <button @click="showFallbackInput = true" class="btn btn-outline">
-            ⌨️ Type Search
-          </button>
+          <button @click="startVoiceSearch" class="btn btn-primary">🎤 Try Voice Again</button>
+          <button @click="showAllProducts" class="btn btn-outline">👀 Show All Products</button>
         </div>
       </div>
 
       <!-- Initial State -->
-      <div v-if="!hasSearched && !voiceState.isProcessing" class="text-center py-12">
+      <div v-if="!hasSearched && !voiceState.isProcessing && displayedProducts.length === 0" class="text-center py-12">
         <div class="text-6xl mb-4">👟</div>
-        <h3 class="text-2xl font-semibold mb-2">Ready to help you find shoes!</h3>
+        <h3 class="text-2xl font-semibold mb-2">Ready to help you find products!</h3>
         <p class="text-base-content/70 mb-6">
-          Use voice search to find the perfect baby shoes
+          Use voice search to find products from our store
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button @click="startVoiceSearch" class="btn btn-primary btn-lg">
-            🎤 Start Voice Search
-          </button>
-          <button @click="showFallbackInput = true" class="btn btn-outline">
-            ⌨️ Type Instead
-          </button>
+          <button @click="startVoiceSearch" class="btn btn-primary btn-lg">🎤 Start Voice Search</button>
+          <button @click="showAllProducts" class="btn btn-outline">👀 Browse All Products</button>
         </div>
         
-        <!-- Example queries -->
-        <div class="mt-8 max-w-2xl mx-auto">
+        <!-- Smart Example queries based on actual categories -->
+        <div v-if="availableCategories.length > 0" class="mt-8 max-w-2xl mx-auto">
           <h4 class="text-lg font-semibold mb-4">Try saying:</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <button 
-              v-for="example in exampleQueries" 
+              v-for="example in smartExampleQueries" 
               :key="example"
               @click="simulateVoiceQuery(example)"
               class="btn btn-ghost btn-sm text-left justify-start"
@@ -215,15 +180,10 @@
       </div>
     </div>
 
-    <!-- Enhanced Floating Voice Button -->
+    <!-- Floating Voice Button -->
     <div class="fixed bottom-6 right-6 z-50">
       <div class="relative">
-        <!-- Pulse ring for listening state -->
-        <div 
-          v-if="voiceState.isListening" 
-          class="absolute inset-0 bg-primary/30 rounded-full animate-ping"
-        ></div>
-        
+        <div v-if="voiceState.isListening" class="absolute inset-0 bg-primary/30 rounded-full animate-ping"></div>
         <button 
           @click="toggleVoiceSearch"
           :disabled="voiceState.isProcessing"
@@ -243,36 +203,24 @@
           </svg>
           <div v-else class="loading loading-dots loading-sm"></div>
         </button>
-        
-        <!-- Status indicator -->
-        <div 
-          v-if="voiceState.isListening || voiceState.isProcessing" 
-          class="absolute -top-2 -right-2 w-4 h-4 rounded-full"
-          :class="voiceState.isListening ? 'bg-error animate-pulse' : 'bg-secondary'"
-        ></div>
       </div>
     </div>
-
-    <!-- Success Toast Container -->
-    <div id="toast-container" class="toast toast-top toast-end"></div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import { VoiceService } from '../services/voiceService'
-import type { Product, VoiceState } from '../types/voice'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { VendureVoiceService } from '../services/vendureVoiceService'
+import type { VendureProduct, VoiceState } from '../types/vendure'
 
 // Services
-const voiceService = new VoiceService()
+const vendureVoiceService = new VendureVoiceService()
 
 // Reactive state
-const displayedProducts = ref<Product[]>([])
+const displayedProducts = ref<VendureProduct[]>([])
+const availableCategories = ref<string[]>([])
 const hasSearched = ref(false)
-const showFallbackInput = ref(false)
-const fallbackQuery = ref('')
 const currentResponse = ref('')
-const isListeningActive = ref(false)
 
 const voiceState = reactive<VoiceState>({
   isListening: false,
@@ -282,15 +230,51 @@ const voiceState = reactive<VoiceState>({
   error: null
 })
 
-// Example queries for better UX
-const exampleQueries = [
-  "running shoes under $50",
-  "casual shoes for kids",
-  "athletic shoes in stock",
-  "outdoor shoes under $40"
-]
+// Smart example queries based on actual categories
+const smartExampleQueries = computed(() => {
+  const examples = []
+  
+  if (availableCategories.value.length > 0) {
+    // Use first few actual categories
+    const categories = availableCategories.value.slice(0, 3)
+    examples.push(`show me ${categories[0]} products`)
+    if (categories[1]) examples.push(`find ${categories[1]} under $100`)
+    if (categories[2]) examples.push(`${categories[2]} in stock`)
+  }
+  
+  // Add generic examples
+  examples.push('show me all products')
+  examples.push('products under $50')
+  examples.push('what do you have in stock')
+  
+  return examples.slice(0, 6)
+})
 
-// Enhanced voice search functionality
+// Initialize
+onMounted(async () => {
+  await loadInitialData()
+})
+
+async function loadInitialData() {
+  try {
+    voiceState.isProcessing = true
+    
+    // Load available categories from Vendure
+    availableCategories.value = await vendureVoiceService.getAvailableCategories()
+    console.log('Available categories:', availableCategories.value)
+    
+    // Load initial products to show
+    displayedProducts.value = await vendureVoiceService.getAllProducts(12)
+    
+  } catch (error) {
+    console.error('Failed to load initial data:', error)
+    voiceState.error = 'Failed to load products from store'
+  } finally {
+    voiceState.isProcessing = false
+  }
+}
+
+// Voice search functionality
 async function startVoiceSearch() {
   if (voiceState.isListening || voiceState.isProcessing) return
 
@@ -298,19 +282,10 @@ async function startVoiceSearch() {
     voiceState.isListening = true
     voiceState.error = null
     voiceState.transcript = ''
-    isListeningActive.value = true
 
-    // Start listening with increased timeout (30 seconds)
-    const transcript = await Promise.race([
-      voiceService.startListening(),
-      new Promise<string>((_, reject) => 
-        setTimeout(() => reject(new Error('Listening timeout - please try again')), 30000)
-      )
-    ])
-
+    const transcript = await vendureVoiceService.startListening()
     voiceState.transcript = transcript
     voiceState.isListening = false
-    isListeningActive.value = false
 
     if (transcript.trim()) {
       await processVoiceCommand(transcript)
@@ -319,30 +294,22 @@ async function startVoiceSearch() {
     }
   } catch (error) {
     voiceState.isListening = false
-    isListeningActive.value = false
     voiceState.error = error instanceof Error ? error.message : 'Voice recognition failed'
-    console.error('Voice search error:', error)
   }
 }
 
-// Stop listening functionality
 function stopListening() {
   voiceState.isListening = false
-  isListeningActive.value = false
-  // The actual stopping would be handled by the voice service
 }
 
-// Stop speaking functionality
 function stopSpeaking() {
   voiceState.isPlaying = false
   currentResponse.value = ''
-  // Stop any ongoing speech synthesis
   if ('speechSynthesis' in window) {
     speechSynthesis.cancel()
   }
 }
 
-// Toggle voice search (start/stop)
 function toggleVoiceSearch() {
   if (voiceState.isListening) {
     stopListening()
@@ -353,40 +320,31 @@ function toggleVoiceSearch() {
   }
 }
 
-// Process voice command with better error handling
 async function processVoiceCommand(transcript: string) {
   try {
     voiceState.isProcessing = true
     hasSearched.value = true
 
-    // Parse the voice command
-    const filters = voiceService.parseVoiceCommand(transcript)
-    
-    // Simulate API delay for realistic experience
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Search products
-    const results = voiceService.searchProducts(filters)
+    // Parse and search using Vendure service
+    const results = await vendureVoiceService.searchProducts(transcript)
     displayedProducts.value = results
 
     voiceState.isProcessing = false
 
     // Generate and speak response
-    const responseText = voiceService.generateResponseText(results, filters)
+    const responseText = vendureVoiceService.generateResponseText(results, transcript)
     currentResponse.value = responseText
     await speakResponse(responseText)
   } catch (error) {
     voiceState.isProcessing = false
     voiceState.error = error instanceof Error ? error.message : 'Search failed'
-    console.error('Voice command processing error:', error)
   }
 }
 
-// Enhanced speak response with better error handling
 async function speakResponse(text: string) {
   try {
     voiceState.isPlaying = true
-    await voiceService.speak(text)
+    await vendureVoiceService.speak(text)
   } catch (error) {
     console.error('TTS error:', error)
   } finally {
@@ -395,107 +353,62 @@ async function speakResponse(text: string) {
   }
 }
 
-// Fallback text search
-async function handleFallbackSearch() {
-  if (!fallbackQuery.value.trim()) return
-
-  voiceState.transcript = fallbackQuery.value
-  await processVoiceCommand(fallbackQuery.value)
-  fallbackQuery.value = ''
-  showFallbackInput.value = false
-}
-
-// Simulate voice query for examples
 async function simulateVoiceQuery(query: string) {
   voiceState.transcript = query
   await processVoiceCommand(query)
 }
 
-// Retry voice search
+async function searchByCategory(category: string) {
+  const query = `show me ${category} products`
+  voiceState.transcript = query
+  await processVoiceCommand(query)
+}
+
+async function showAllProducts() {
+  const query = 'show me all products'
+  voiceState.transcript = query
+  await processVoiceCommand(query)
+}
+
 function retryVoiceSearch() {
   clearError()
   startVoiceSearch()
 }
 
-// Enhanced add to cart with better feedback
-function addToCart(product: Product) {
+function addToCart(product: VendureProduct) {
   console.log('Adding to cart:', product)
   
-  // Create and show success toast
-  const toastContainer = document.getElementById('toast-container')
-  if (toastContainer) {
-    const toast = document.createElement('div')
-    toast.className = 'alert alert-success shadow-lg mb-2'
-    toast.innerHTML = `
-      <div class="flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>Added ${product.name} to cart!</span>
-      </div>
-    `
-    toastContainer.appendChild(toast)
-    
-    setTimeout(() => {
-      if (toastContainer.contains(toast)) {
-        toastContainer.removeChild(toast)
-      }
-    }, 3000)
-  }
+  // Show success toast
+  const toast = document.createElement('div')
+  toast.className = 'toast toast-top toast-end'
+  toast.innerHTML = `
+    <div class="alert alert-success shadow-lg">
+      <span>Added ${product.name} to cart!</span>
+    </div>
+  `
+  document.body.appendChild(toast)
+  
+  setTimeout(() => {
+    if (document.body.contains(toast)) {
+      document.body.removeChild(toast)
+    }
+  }, 3000)
 }
 
-// Clear error
 function clearError() {
   voiceState.error = null
 }
 
-// Clear transcript
 function clearTranscript() {
   voiceState.transcript = ''
 }
 
-// Get button title for accessibility
 function getButtonTitle(): string {
   if (voiceState.isListening) return 'Stop listening'
   if (voiceState.isProcessing) return 'Processing...'
   if (voiceState.isPlaying) return 'Stop speaking'
   return 'Start voice search'
 }
-
-// Enhanced keyboard shortcuts
-function handleKeydown(event: KeyboardEvent) {
-  // Only trigger if not typing in an input
-  if (event.target && (event.target as HTMLElement).matches('input, textarea')) {
-    return
-  }
-
-  if (event.code === 'Space') {
-    event.preventDefault()
-    toggleVoiceSearch()
-  } else if (event.code === 'Escape') {
-    if (voiceState.isListening) {
-      stopListening()
-    } else if (voiceState.isPlaying) {
-      stopSpeaking()
-    }
-  }
-}
-
-// Lifecycle
-onMounted(() => {
-  document.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-  // Clean up any ongoing operations
-  if (voiceState.isListening) {
-    stopListening()
-  }
-  if (voiceState.isPlaying) {
-    stopSpeaking()
-  }
-})
 </script>
 
 <style scoped>
@@ -510,33 +423,18 @@ onUnmounted(() => {
   aspect-ratio: 1 / 1;
 }
 
-/* Enhanced pulse animation for listening state */
 @keyframes pulse-scale {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.1);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .animate-pulse-scale {
   animation: pulse-scale 1.5s infinite;
 }
 
-/* Floating button hover effect */
-.btn-circle:hover:not(:disabled) {
-  transform: scale(1.1);
-}
-
-/* Enhanced shimmer animation for loading states */
 @keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
 }
 
 .animate-shimmer {
@@ -545,23 +443,6 @@ onUnmounted(() => {
   animation: shimmer 1.5s infinite;
 }
 
-/* Toast positioning */
-.toast {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1000;
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  .fixed.bottom-6.right-6 {
-    bottom: 1rem;
-    right: 1rem;
-  }
-}
-
-/* Enhanced visual feedback */
 .animate-ping {
   animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
