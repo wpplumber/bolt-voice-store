@@ -1,5 +1,7 @@
 # TinyKicks - AI Voice-Powered Vendure Store
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/68445607-74fa-456a-a34b-8904e20d5bc2/deploy-status)](https://app.netlify.com/projects/bolt-hackathon-tarikrital/deploys)
+
 ## About the Project
 
 **TinyKicks** is an innovative e-commerce platform that combines modern web technologies with AI-powered voice search to create a seamless shopping experience. Built for the Bolt.new Hackathon, this project demonstrates the future of conversational commerce.
