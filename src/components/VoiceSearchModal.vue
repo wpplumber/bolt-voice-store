@@ -37,16 +37,6 @@
                       <p class="text-sm text-base-content/70">
                         Tap the microphone and say something like "Show me running shoes under $50"
                       </p>
-                      <!-- Vendure Status Indicator -->
-                      <div class="flex items-center gap-2 mt-1">
-                        <div class="badge badge-success badge-xs">
-                          <div class="w-1 h-1 bg-white rounded-full mr-1"></div>
-                          Live Store Connected
-                        </div>
-                        <span class="text-xs text-base-content/60">
-                          {{ vendureProductsCount }} live products available
-                        </span>
-                      </div>
                     </div>
                   </div>
                   <button @click="closeModal" class="btn btn-ghost btn-sm btn-circle">
@@ -176,13 +166,13 @@
                     :key="product.id"
                     class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 relative"
                   >
-                    <!-- Live Product Badge -->
+                    <!-- Vendure Product Badge -->
                     <div 
                       v-if="product.id.startsWith('vendure-')" 
                       class="absolute top-2 left-2 z-10 badge badge-success badge-sm"
                     >
                       <div class="w-1 h-1 bg-white rounded-full mr-1 animate-pulse"></div>
-                      LIVE
+                      VENDURE
                     </div>
                     
                     <figure class="aspect-square overflow-hidden">
@@ -198,6 +188,12 @@
                       <p class="text-xs sm:text-sm text-base-content/70 line-clamp-2 mb-2">
                         {{ product.description }}
                       </p>
+                      <!-- Product Tags/Categories -->
+                      <div class="flex flex-wrap gap-1 mb-2">
+                        <span class="badge badge-outline badge-xs">{{ product.category }}</span>
+                        <span v-if="product.id.startsWith('vendure-')" class="badge badge-primary badge-xs">Backend</span>
+                        <span v-else class="badge badge-secondary badge-xs">Mock</span>
+                      </div>
                       <div class="flex items-center justify-between">
                         <span class="text-lg sm:text-2xl font-bold text-primary">${{ product.price }}</span>
                         <div class="flex items-center gap-2">
@@ -246,7 +242,7 @@
                   <div class="text-6xl mb-4">👟</div>
                   <h3 class="text-2xl font-semibold mb-2">Ready to help you find shoes!</h3>
                   <p class="text-base-content/70 mb-6">
-                    Use voice search to find the perfect baby shoes from our mock collection and live store
+                    Use voice search to find the perfect baby shoes
                   </p>
                   <div class="flex flex-col sm:flex-row gap-4 justify-center">
                     <button @click="startVoiceSearch" class="btn btn-primary btn-lg">
@@ -297,7 +293,6 @@ const hasSearched = ref(false)
 const showFallbackInput = ref(false)
 const fallbackQuery = ref('')
 const currentResponse = ref('')
-const vendureProductsCount = ref(0)
 
 const voiceState = reactive<VoiceState>({
   isListening: false,
@@ -318,8 +313,6 @@ const exampleQueries = [
 // Event handlers
 function handleOpenVoiceSearch() {
   isOpen.value = true
-  // Update Vendure products count when modal opens
-  vendureProductsCount.value = voiceService.getVendureProductsCount()
 }
 
 function closeModal() {
@@ -472,11 +465,6 @@ function clearTranscript() {
 onMounted(() => {
   // Listen for voice search open events
   window.addEventListener('openVoiceSearch', handleOpenVoiceSearch)
-  
-  // Initialize Vendure products count
-  setTimeout(() => {
-    vendureProductsCount.value = voiceService.getVendureProductsCount()
-  }, 2000) // Give time for Vendure service to initialize
 })
 
 onUnmounted(() => {

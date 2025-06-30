@@ -62,7 +62,7 @@ export class VendureService {
       // Get the first variant for pricing
       const firstVariant = product.variants[0]
       
-      // Determine category from collections or product name
+      // Determine category from collections or product name - use actual Vendure data
       const category = this.determineCategory(product)
       
       // Check stock status
@@ -70,43 +70,64 @@ export class VendureService {
       
       return {
         id: product.id,
-        name: product.name,
+        name: product.name, // Use actual Vendure product name
         price: firstVariant ? Math.round(firstVariant.priceWithTax / 100) : 0, // Convert from cents
         image: product.featuredAsset?.preview || this.getDefaultImage(category),
-        description: product.description || `High-quality ${category} shoes for kids`,
-        category: category,
+        description: product.description || `${product.name} - Premium quality footwear`, // Use actual description
+        category: category, // Use determined category from Vendure data
         inStock: inStock
       }
     })
   }
 
-  // Determine product category from collections or name
+  // Determine product category from collections or name - enhanced to use real Vendure data
   private determineCategory(product: VendureProduct): string {
     const name = product.name.toLowerCase()
     const collections = product.collections.map(c => c.name.toLowerCase())
+    const allCollectionNames = product.collections.map(c => c.name).join(', ')
     
-    // Check collections first
+    console.log(`Product: ${product.name}, Collections: ${allCollectionNames}`)
+    
+    // Check collections first - use actual collection names from Vendure
     for (const collection of collections) {
-      if (collection.includes('running')) return 'running'
+      // Direct matches
+      if (collection.includes('running') || collection.includes('runner')) return 'running'
       if (collection.includes('casual')) return 'casual'
-      if (collection.includes('outdoor')) return 'outdoor'
+      if (collection.includes('outdoor') || collection.includes('hiking')) return 'outdoor'
       if (collection.includes('athletic') || collection.includes('sport')) return 'athletic'
-      if (collection.includes('walking')) return 'walking'
+      if (collection.includes('walking') || collection.includes('walker')) return 'walking'
       if (collection.includes('basketball')) return 'basketball'
-      if (collection.includes('training')) return 'training'
+      if (collection.includes('training') || collection.includes('trainer')) return 'training'
+      if (collection.includes('playground')) return 'playground'
+      
+      // Broader matches for common Vendure collection patterns
+      if (collection.includes('footwear')) return 'casual'
+      if (collection.includes('shoes')) return 'casual'
+      if (collection.includes('sneakers')) return 'casual'
+      if (collection.includes('boots')) return 'outdoor'
+      if (collection.includes('sandals')) return 'casual'
     }
     
-    // Check product name
+    // Check product name for category hints
     if (name.includes('running') || name.includes('runner')) return 'running'
     if (name.includes('casual')) return 'casual'
-    if (name.includes('outdoor') || name.includes('hiking')) return 'outdoor'
+    if (name.includes('outdoor') || name.includes('hiking') || name.includes('boot')) return 'outdoor'
     if (name.includes('athletic') || name.includes('sport')) return 'athletic'
     if (name.includes('walking') || name.includes('walker')) return 'walking'
     if (name.includes('basketball')) return 'basketball'
     if (name.includes('training') || name.includes('trainer')) return 'training'
     if (name.includes('playground')) return 'playground'
+    if (name.includes('sneaker')) return 'casual'
+    if (name.includes('sandal')) return 'casual'
     
-    // Default to casual
+    // If we have collections but no matches, use the first collection name as category
+    if (product.collections.length > 0) {
+      const firstCollection = product.collections[0].name.toLowerCase()
+      // Clean up collection name to be a valid category
+      return firstCollection.replace(/[^a-z]/g, '') || 'casual'
+    }
+    
+    // Default to casual if no specific category found
     return 'casual'
   }
 

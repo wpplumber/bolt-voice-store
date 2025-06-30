@@ -23,6 +23,7 @@ export class VoiceService {
     try {
       this.vendureProducts = await this.vendureService.fetchProducts(5) // Fetch top 5
       console.log('Loaded Vendure products:', this.vendureProducts.length)
+      console.log('Vendure products:', this.vendureProducts.map(p => ({ name: p.name, category: p.category })))
     } catch (error) {
       console.error('Failed to initialize Vendure products:', error)
     }
@@ -35,10 +36,10 @@ export class VoiceService {
     const vendureProductsWithPrefix = this.vendureProducts.map(product => ({
       ...product,
       id: `vendure-${product.id}`,
-      name: `${product.name} (Live)` // Add indicator for Vendure products
+      // Don't modify the name - keep original Vendure product names
     }))
 
-    return [...mockProducts, ...vendureProductsWithPrefix]
+    return [...vendureProductsWithPrefix, ...mockProducts] // Vendure products first
   }
 
   // Speech-to-Text using Web Speech API (primary) with ElevenLabs fallback
@@ -229,7 +230,7 @@ export class VoiceService {
     }
   }
 
-  // Parse voice command and extract search filters
+  // Parse voice command and extract search filters - enhanced for Vendure categories
   parseVoiceCommand(transcript: string): SearchFilters {
     const lowerTranscript = transcript.toLowerCase()
     const filters: SearchFilters = {}
@@ -251,12 +252,41 @@ export class VoiceService {
       filters.maxPrice = parseInt(rangeMatch[2])
     }
 
-    // Extract category
-    const categories = ['running', 'casual', 'outdoor', 'athletic', 'walking', 'basketball', 'playground', 'training']
-    for (const category of categories) {
+    // Extract category - enhanced to match both mock and Vendure categories
+    const allProducts = this.getCombinedProducts()
+    const availableCategories = [...new Set(allProducts.map(p => p.category.toLowerCase()))]
+    
+    console.log('Available categories:', availableCategories)
+    
+    // Check for exact category matches first
+    for (const category of availableCategories) {
       if (lowerTranscript.includes(category)) {
         filters.category = category
         break
+      }
+    }
+    
+    // If no exact match, try common category synonyms
+    if (!filters.category) {
+      const categoryMap: Record<string, string[]> = {
+        'running': ['running', 'runner', 'jog', 'jogging'],
+        'casual': ['casual', 'everyday', 'daily', 'regular'],
+        'outdoor': ['outdoor', 'hiking', 'trail', 'adventure'],
+        'athletic': ['athletic', 'sport', 'sports', 'gym', 'fitness'],
+        'walking': ['walking', 'walker', 'walk'],
+        'basketball': ['basketball', 'court', 'hoops'],
+        'training': ['training', 'trainer', 'workout', 'exercise'],
+        'playground': ['playground', 'play']
+      }
+      
+      for (const [category, synonyms] of Object.entries(categoryMap)) {
+        if (synonyms.some(synonym => lowerTranscript.includes(synonym))) {
+          // Check if this category exists in our available categories
+          if (availableCategories.includes(category)) {
+            filters.category = category
+            break
+          }
+        }
       }
     }
 
@@ -281,12 +311,16 @@ export class VoiceService {
       filters.inStock = true
     }
 
+    console.log('Parsed filters:', filters)
     return filters
   }
 
   // Search products based on filters (now includes Vendure products)
   searchProducts(filters: SearchFilters): Product[] {
     let results = this.getCombinedProducts()
+    
+    console.log('Searching in products:', results.length)
+    console.log('Search filters:', filters)
 
     // Filter by price range
     if (filters.maxPrice) {
@@ -298,7 +332,7 @@ export class VoiceService {
 
     // Filter by category
     if (filters.category) {
-      results = results.filter(product => product.category === filters.category)
+      results = results.filter(product => product.category.toLowerCase() === filters.category!.toLowerCase())
     }
 
     // Filter by stock status
@@ -331,6 +365,7 @@ export class VoiceService {
       return a.price - b.price
     })
 
+    console.log('Search results:', results.length)
     return results
   }
 
@@ -354,13 +389,13 @@ export class VoiceService {
     let response = `Found ${count} ${category} shoe${count === 1 ? '' : 's'}${priceRange}. `
     
     if (vendureCount > 0) {
-      response += `Including ${vendureCount} live product${vendureCount === 1 ? '' : 's'} from our store. `
+      response += `Including ${vendureCount} product${vendureCount === 1 ? '' : 's'} from our backend store. `
     }
     
     if (count <= 3) {
       const productNames = products.slice(0, 3).map(p => {
-        const isLive = p.id.startsWith('vendure-')
-        return `${p.name.replace(' (Live)', '')} for $${p.price}${isLive ? ' from our live inventory' : ''}`
+        const isVendure = p.id.startsWith('vendure-')
+        return `${p.name} for $${p.price}${isVendure ? ' from our store' : ''}`
       }).join(', ')
       response += `Here they are: ${productNames}.`
     } else {
@@ -371,8 +406,8 @@ export class VoiceService {
       // Mention top 2 products
       const topProducts = products.slice(0, 2)
       response += `Top picks are ${topProducts.map(p => {
-        const isLive = p.id.startsWith('vendure-')
-        return `${p.name.replace(' (Live)', '')} for $${p.price}${isLive ? ' from live inventory' : ''}`
+        const isVendure = p.id.startsWith('vendure-')
+        return `${p.name} for $${p.price}${isVendure ? ' from our store' : ''}`
       }).join(' and ')}.`
     }
 
