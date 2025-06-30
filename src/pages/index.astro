@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import VendureCollections from '../components/VendureCollections.vue';
+import VoiceProductBrowser from '../components/VoiceProductBrowser.vue';
 import CartSidebar from '../components/CartSidebar.vue';
 import Footer from '../components/Footer.astro';
 ---
@@ -12,6 +13,7 @@ import Footer from '../components/Footer.astro';
   <main>
     <Hero />
     <VendureCollections client:load />
+    <VoiceProductBrowser client:load />
   </main>
   <CartSidebar client:load />
   <Footer />
