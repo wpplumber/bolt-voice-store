@@ -7,10 +7,7 @@ import BoltBadge from './BoltBadge.vue';
 <header class="bg-base-100 shadow-lg">
   <div class="container-custom py-4">
     <div class="flex items-center justify-between">
-      <a href="/" class="flex items-center space-x-3">
-        <img src="/black_circle_360x360.png" alt="TinyKicks Logo" class="w-10 h-10" />
-        <span class="text-2xl font-bold text-primary">TinyKicks</span>
-      </a>
+      <a href="/" class="text-2xl font-bold text-primary">TinyKicks</a>
       
       <div class="hidden md:flex items-center space-x-6">
         <SearchBar client:load />
@@ -19,6 +16,9 @@ import BoltBadge from './BoltBadge.vue';
           <a href="/collections/boys" class="link link-hover">Boys</a>
           <a href="/collections/girls" class="link link-hover">Girls</a>
         </nav>
+        
+        <!-- Logo positioned between navigation and sign in -->
+        <img src="/black_circle_360x360.png" alt="TinyKicks Logo" class="w-8 h-8" />
       </div>
 
       <div class="flex items-center space-x-4">
