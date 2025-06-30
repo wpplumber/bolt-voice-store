@@ -3,7 +3,7 @@
     <input 
       type="text" 
       placeholder="Search" 
-      class="input input-bordered w-24 md:w-auto" 
+      class="input input-bordered w-24 md:w-auto cursor-pointer" 
       @focus="openVoiceSearch"
       @click="openVoiceSearch"
       readonly
@@ -12,12 +12,8 @@
 </template>
 
 <script setup lang="ts">
-// Emits
-const emit = defineEmits<{
-  openVoiceSearch: []
-}>()
-
 function openVoiceSearch() {
-  emit('openVoiceSearch')
+  // Dispatch custom event to open voice search modal
+  window.dispatchEvent(new CustomEvent('openVoiceSearch'))
 }
 </script>

@@ -266,27 +266,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { VoiceService } from '../services/voiceService'
 import type { Product, VoiceState } from '../types/voice'
-
-// Props
-interface Props {
-  isOpen: boolean
-}
-
-const props = defineProps<Props>()
-
-// Emits
-const emit = defineEmits<{
-  close: []
-}>()
 
 // Services
 const voiceService = new VoiceService()
 
 // Reactive state
+const isOpen = ref(false)
 const displayedProducts = ref<Product[]>([])
 const hasSearched = ref(false)
 const showFallbackInput = ref(false)
@@ -309,7 +298,11 @@ const exampleQueries = [
   "outdoor shoes under $40"
 ]
 
-// Modal controls
+// Event handlers
+function handleOpenVoiceSearch() {
+  isOpen.value = true
+}
+
 function closeModal() {
   // Stop any ongoing operations
   if (voiceState.isListening) {
@@ -318,7 +311,17 @@ function closeModal() {
   if (voiceState.isPlaying) {
     stopSpeaking()
   }
-  emit('close')
+  
+  isOpen.value = false
+  
+  // Reset state when modal closes
+  hasSearched.value = false
+  displayedProducts.value = []
+  showFallbackInput.value = false
+  fallbackQuery.value = ''
+  currentResponse.value = ''
+  voiceState.transcript = ''
+  voiceState.error = null
 }
 
 // Voice search functionality
@@ -446,17 +449,22 @@ function clearTranscript() {
   voiceState.transcript = ''
 }
 
-// Reset state when modal closes
-watch(() => props.isOpen, (newValue) => {
-  if (!newValue) {
-    // Reset state when modal closes
-    hasSearched.value = false
-    displayedProducts.value = []
-    showFallbackInput.value = false
-    fallbackQuery.value = ''
-    currentResponse.value = ''
-    voiceState.transcript = ''
-    voiceState.error = null
+// Lifecycle
+onMounted(() => {
+  // Listen for voice search open events
+  window.addEventListener('openVoiceSearch', handleOpenVoiceSearch)
+})
+
+onUnmounted(() => {
+  // Clean up event listeners
+  window.removeEventListener('openVoiceSearch', handleOpenVoiceSearch)
+  
+  // Clean up any ongoing operations
+  if (voiceState.isListening) {
+    stopListening()
+  }
+  if (voiceState.isPlaying) {
+    stopSpeaking()
   }
 })
 </script>

@@ -31,13 +31,9 @@ interface Props {
 
 defineProps<Props>()
 
-// Emits
-const emit = defineEmits<{
-  openVoiceSearch: []
-}>()
-
 function openVoiceSearch() {
-  emit('openVoiceSearch')
+  // Dispatch custom event to open voice search modal
+  window.dispatchEvent(new CustomEvent('openVoiceSearch'))
 }
 </script>
 

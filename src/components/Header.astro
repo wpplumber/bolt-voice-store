@@ -33,28 +33,3 @@ import VoiceSearchButton from './VoiceSearchButton.vue';
   <VoiceSearchModal client:load />
   <VoiceSearchButton client:load />
 </header>
-
-<script>
-  // Global voice search modal state management
-  let isVoiceSearchOpen = false;
-  
-  // Listen for voice search events
-  document.addEventListener('DOMContentLoaded', () => {
-    // Handle search bar clicks
-    document.addEventListener('openVoiceSearch', () => {
-      isVoiceSearchOpen = true;
-      document.dispatchEvent(new CustomEvent('voiceSearchModalToggle', { detail: { isOpen: true } }));
-    });
-    
-    // Handle floating button clicks
-    document.addEventListener('voiceSearchButtonClick', () => {
-      isVoiceSearchOpen = !isVoiceSearchOpen;
-      document.dispatchEvent(new CustomEvent('voiceSearchModalToggle', { detail: { isOpen: isVoiceSearchOpen } }));
-    });
-    
-    // Handle modal close
-    document.addEventListener('voiceSearchModalClose', () => {
-      isVoiceSearchOpen = false;
-    });
-  });
-</script>
